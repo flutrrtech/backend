@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
   c_l_name: String,
   c_initial_name: String,
   c_dob: String,
+  c_unique_id:String,
   c_gender: String,
   c_gender_preference: String,
   c_here_for: String,
@@ -118,6 +119,8 @@ const UserSchema = new mongoose.Schema({
   },
   c_otp: String,
   otp_verified: String,
+},{
+  timestamps:true
 });
 
 module.exports = mongoose.model("User", UserSchema);

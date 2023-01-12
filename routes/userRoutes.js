@@ -11,6 +11,10 @@ const {
   requestOtp,
   otpLogin
 } = require("../controller/user");
+const {
+  customerLike,
+  customerSuperLike
+} = require("../controller/customerLike");
 const path = require("path");
 const multer = require("multer");
 const verifyToken = require("../middleware/auth");
@@ -44,5 +48,7 @@ router.post("/facebooklogin", facebookLogin);
 router.post("/emaillogin", emailLogin);
 router.post("/requestotp", requestOtp);
 router.post("/otplogin", otpLogin);
+router.post("/customerlike", customerLike);
+router.post("/customersuperlike", customerSuperLike);
 // Importing the router
 module.exports = router;

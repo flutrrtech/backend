@@ -45,18 +45,20 @@ exports.userRegistration = async (req, res) => {
   user.c_otp = otp;
   user.otp_verified = "1";
   let result = await user.save();
+  result.c_unique_id=result._id
+  await result.save()
   if (req.body.user_phone) {
     await sendOtp(req.body.user_phone, otp);
   }
   return res.status(200).json({
     status: 1,
     message: "User Created Successfully",
-    id: result._id,
+    unique_id: result._id,
   });
 };
 /* verify otp- post */
 exports.verifyOtp = async (req, res) => {
-  var user = await User.findOne({ _id: req.body.unique_id });
+  var user = await User.findOne({ c_unique_id: req.body.unique_id });
   if (user) {
     console.log(user.otp, req.body.otp);
     if (user.c_otp == req.body.otp) {
@@ -80,7 +82,7 @@ exports.verifyOtp = async (req, res) => {
 post*/
 exports.addMoreDetails = async (req, res) => {
   try {
-    var findUser = await User.findOne({ id: req.body.unique_id });
+    var findUser = await User.findOne({ c_unique_id: req.body.unique_id });
     if (findUser) {
       findUser.c_dob = req.body.user_dob;
       findUser.c_gender = req.body.user_gender;
@@ -115,7 +117,7 @@ post */
 exports.uploadProfilePhoto = async (req, res) => {
   console.log(req.files);
   try {
-    const findUser = await User.findOne({ _id: req.body.unique_id });
+    const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
     if (findUser) {
       if (
         req.files.user_profile_image_1 &&
@@ -171,7 +173,7 @@ exports.uploadProfilePhoto = async (req, res) => {
 /* get user detail by unique id */
 exports.getUser = async (req, res) => {
   try {
-    const findUser = await User.findOne({ _id: req.body.unique_id });
+    const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
     if (findUser) {
       return res.status(200).json({
         status: 1,
