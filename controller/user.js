@@ -3,6 +3,8 @@ const { randomOtpGenerator } = require("../helper/otpGenerate");
 const { sendOtp } = require("../helper/sendOtp");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const CustomerReport = require("../model/customerReport");
+
 const { URLSearchParams } = require("url");
 
 /* user registration
@@ -319,3 +321,45 @@ exports.otpLogin = async (req, res) => {
     });
   }
 };
+
+/*selfie verify 
+post */
+exports.verifySelfie=async(req,res)=>{
+  try{
+    await User.findOneAndUpdate({c_unique_id:req.body.unique_id},{c_selfie_verify:req.body.user_selfie_verify},{new:true}) 
+    return res.status(200).json({
+      status:1,
+      message:"User Selfie Verified"
+    })
+   }catch(err){
+    return res.status(200).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+/* report profile
+post */
+exports.reportProfile=async(req,res)=>{
+  try{
+   var customerReport=new CustomerReport()
+   customerReport.cr_send_user_unique_id=req.body.send_user_unique_id
+   customerReport.cr_for_user_unique_id=req.body.for_user_unique_id
+   customerReport.cr_report_heading=req.body.report_heading?req.body.report_heading:""
+   customerReport.cr_report_matter=req.body.report_matter?req.body.report_matter:""
+   var result=await customerReport.save()
+   result.cr_id=result._id
+   await result.save()
+   return res.status(200).json({
+    status:1,
+    message:"Report Submitted Successfully"
+   })
+
+   }catch(err){
+    return res.status(200).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+

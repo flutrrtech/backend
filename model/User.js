@@ -65,15 +65,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
-  c_phone_varify: {
+  c_phone_verify: {
     type: String,
     default: "",
   },
-  c_email_varify: {
+  c_email_verify: {
     type: String,
     default: "",
   },
-  c_sefie_verify: {
+  c_selfie_verify: {
     type: String,
     default: "",
   },
