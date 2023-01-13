@@ -1,21 +1,43 @@
 const jwt = require("jsonwebtoken");
+var jwtSecret=process.env.SECRET
 
-const config = process.env;
-
-const verifyToken = (req, res, next) => {
-  const token =
-    req.body.token || req.query.token || req.headers["authorization"][1];
-
-  if (!token) {
-    return res.status(403).send("A token is required for authentication");
-  }
-  try {
-    const decoded = jwt.verify(token, config.TOKEN_KEY);
-    req.user = decoded;
-  } catch (err) {
-    return res.status(401).send("Invalid Token");
-  }
-  return next();
-};
-
-module.exports = verifyToken;
+exports.checkToken = (req,res,next) => {
+    let authData = req.headers['authorization'];
+    if(authData){
+        try{
+            let token = authData.split(" ");
+            if(token[0] !== "Bearer"){
+                let response = {
+                    status: 0,
+                    message: "pass token with bearer",
+                }
+                res.status(404).send(response)
+            }else{
+                let verifyData = jwt.verify(token[1],jwtSecret)
+                if(verifyData){
+                    let tokenData = {
+                        unique_id:verifyData.unique_id
+                    }
+                    req.authUser = tokenData;
+                    next();
+                }
+                
+            }
+        }catch(err){
+            let response = {
+                status: "ERROR",
+                errors: err.message,
+            }
+            res.status(403).send(response)
+        }
+       
+    }else{
+        let response = {
+            status: "ERROR",
+            errors: "Access Denied! unauthorized user",
+        }
+        res.status(401).send(response);
+        
+    }
+   
+}
