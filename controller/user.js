@@ -4,8 +4,9 @@ const { sendOtp } = require("../helper/sendOtp");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const CustomerReport = require("../model/customerReport");
-
+const CustomerMatch=require('../model/customerMatch')
 const { URLSearchParams } = require("url");
+const  fs = require("fs");
 
 /* user registration
   post
@@ -363,3 +364,59 @@ exports.reportProfile=async(req,res)=>{
   }
 }
 
+exports.sendMatch=async(req,res)=>{
+  try{
+   var customerSendMatch=new CustomerMatch()
+   customerSendMatch.cmm_sender_unique_id=req.body.logged_in_unique_id
+   customerSendMatch.cmm_receiver_unique_id=req.body.receiver_unique_id
+   customerSendMatch.cmm_match_time=new Date()
+   var result=await customerSendMatch.save()
+   result.cmm_id=result._id
+   await result.save()
+   return res.status(200).json({
+    status:1,
+    message:"Match data added Successfully"
+   })
+
+   }catch(err){
+    return res.status(200).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+
+exports.deleteProfileImage=async(req,res)=>{
+  try{
+   console.log(Object.keys(req.body)[1])
+   var txt=(Object.keys(req.body)[1])
+   var replace=txt.replace(/user/g,'c')
+   console.log(replace)
+   var findUser=await User.findOne({c_unique_id:req.body.unique_id})
+   
+   var resultHandler = function (err) {
+    if (err) {
+        console.log("unlink failed", err);
+    } else {
+        console.log("file deleted");
+    }
+}
+console.log(findUser)
+
+   if(req.body.user_profile_image_1===""){
+    console.log("hi")
+     await fs.unlink(`uploads/${findUser.c_profile_image_1}`,resultHandler)
+   }
+   return res.status(200).json({
+    status:1,
+    message:"Deleted  Successfully"
+   })
+
+   }
+   catch(err){
+    return res.status(200).json({
+      status:0,
+      message:err.message
+    })
+  }
+}

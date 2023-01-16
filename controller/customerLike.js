@@ -1,5 +1,6 @@
 
 const CustomerLike = require("../model/customerLike");
+const User = require("../model/User");
 // user send like
 exports.customerLike=async(req,res)=>{
     try{
@@ -73,3 +74,34 @@ exports.customerSuperLike=async(req,res)=>{
     }
 }
 
+// customer get own like 
+//  profiles
+
+
+exports.getLikedUser=async(req,res)=>{
+    try{
+      var findLikes=await CustomerLike.find({crm_reciver_unique_id:req.body.unique_id})
+      var i=0
+      var arr=[]
+      while(i<findLikes.length){
+        var results=await User.findOne({unique_id:findlikes[i].unique_id})
+        if(results){
+            arr.push(results)
+        }
+        i++;
+
+      }
+      return res.status(200).json({
+        status:1,
+        message:"Get Liked Data Successfully",
+        data:arr
+      })
+  
+    }
+    catch(err){
+      return res.status(200).json({
+        status:0,
+        message:err.message
+      })
+    }
+  }

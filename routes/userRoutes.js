@@ -11,11 +11,14 @@ const {
   requestOtp,
   otpLogin,
   verifySelfie,
-  reportProfile
+  reportProfile,
+  sendMatch,
+  deleteProfileImage
 } = require("../controller/user");
 const {
   customerLike,
-  customerSuperLike
+  customerSuperLike,
+  getLikedUser
   
 } = require("../controller/customerLike");
 const {
@@ -56,9 +59,11 @@ router.post("/emaillogin", emailLogin);
 router.post("/requestotp", requestOtp);
 router.post("/otplogin", otpLogin);
 router.post("/verifySelfie", verifySelfie);
+router.post("/deleteprofileimage", deleteProfileImage);
 //customer like management
 router.post("/customerlike", customerLike);
 router.post("/customersuperlike", customerSuperLike);
+router.post("/getlikeduser", getLikedUser);
 
 
 //customer reject management
@@ -66,5 +71,7 @@ router.post("/customerreject", customerReject);
 router.post("/customerrewindreject", customerRewindReject);
 //customer report
 router.post("/customerreportprofile", reportProfile);
+
+router.post("/customersendmatch", sendMatch);
 // Importing the router
 module.exports = router;
