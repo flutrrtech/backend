@@ -4,9 +4,9 @@ const { sendOtp } = require("../helper/sendOtp");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const CustomerReport = require("../model/customerReport");
-const CustomerMatch=require('../model/customerMatch')
+const CustomerMatch = require("../model/customerMatch");
 const { URLSearchParams } = require("url");
-const  fs = require("fs");
+const fs = require("fs");
 
 /* user registration
   post
@@ -48,8 +48,8 @@ exports.userRegistration = async (req, res) => {
   user.c_otp = otp;
   user.otp_verified = "1";
   let result = await user.save();
-  result.c_unique_id=result._id
-  await result.save()
+  result.c_unique_id = result._id;
+  await result.save();
   if (req.body.user_phone) {
     await sendOtp(req.body.user_phone, otp);
   }
@@ -325,95 +325,229 @@ exports.otpLogin = async (req, res) => {
 
 /*selfie verify 
 post */
-exports.verifySelfie=async(req,res)=>{
-  try{
-    await User.findOneAndUpdate({c_unique_id:req.body.unique_id},{c_selfie_verify:req.body.user_selfie_verify},{new:true}) 
+exports.verifySelfie = async (req, res) => {
+  try {
+    await User.findOneAndUpdate(
+      { c_unique_id: req.body.unique_id },
+      { c_selfie_verify: req.body.user_selfie_verify },
+      { new: true }
+    );
     return res.status(200).json({
-      status:1,
-      message:"User Selfie Verified"
-    })
-   }catch(err){
+      status: 1,
+      message: "User Selfie Verified",
+    });
+  } catch (err) {
     return res.status(200).json({
-      status:0,
-      message:err.message
-    })
+      status: 0,
+      message: err.message,
+    });
   }
-}
+};
 /* report profile
 post */
-exports.reportProfile=async(req,res)=>{
-  try{
-   var customerReport=new CustomerReport()
-   customerReport.cr_send_user_unique_id=req.body.send_user_unique_id
-   customerReport.cr_for_user_unique_id=req.body.for_user_unique_id
-   customerReport.cr_report_heading=req.body.report_heading?req.body.report_heading:""
-   customerReport.cr_report_matter=req.body.report_matter?req.body.report_matter:""
-   var result=await customerReport.save()
-   result.cr_id=result._id
-   await result.save()
-   return res.status(200).json({
-    status:1,
-    message:"Report Submitted Successfully"
-   })
-
-   }catch(err){
+exports.reportProfile = async (req, res) => {
+  try {
+    var customerReport = new CustomerReport();
+    customerReport.cr_send_user_unique_id = req.body.send_user_unique_id;
+    customerReport.cr_for_user_unique_id = req.body.for_user_unique_id;
+    customerReport.cr_report_heading = req.body.report_heading
+      ? req.body.report_heading
+      : "";
+    customerReport.cr_report_matter = req.body.report_matter
+      ? req.body.report_matter
+      : "";
+    var result = await customerReport.save();
+    result.cr_id = result._id;
+    await result.save();
     return res.status(200).json({
-      status:0,
-      message:err.message
-    })
-  }
-}
-
-exports.sendMatch=async(req,res)=>{
-  try{
-   var customerSendMatch=new CustomerMatch()
-   customerSendMatch.cmm_sender_unique_id=req.body.logged_in_unique_id
-   customerSendMatch.cmm_receiver_unique_id=req.body.receiver_unique_id
-   customerSendMatch.cmm_match_time=new Date()
-   var result=await customerSendMatch.save()
-   result.cmm_id=result._id
-   await result.save()
-   return res.status(200).json({
-    status:1,
-    message:"Match data added Successfully"
-   })
-
-   }catch(err){
+      status: 1,
+      message: "Report Submitted Successfully",
+    });
+  } catch (err) {
     return res.status(200).json({
-      status:0,
-      message:err.message
-    })
+      status: 0,
+      message: err.message,
+    });
   }
-}
+};
 
-exports.deleteProfileImage=async(req,res)=>{
-  try{
-   console.log(Object.keys(req.body)[1])
-   var txt=(Object.keys(req.body)[1])
-   var replace=txt.replace(/user/g,'c')
-   console.log(replace)
-   var findUser=await User.findOne({c_unique_id:req.body.unique_id})
-   
-   var resultHandler = function (err) {
-    if (err) {
+exports.sendMatch = async (req, res) => {
+  try {
+    var customerSendMatch = new CustomerMatch();
+    customerSendMatch.cmm_sender_unique_id = req.body.logged_in_unique_id;
+    customerSendMatch.cmm_receiver_unique_id = req.body.receiver_unique_id;
+    customerSendMatch.cmm_match_time = new Date();
+    var result = await customerSendMatch.save();
+    result.cmm_id = result._id;
+    await result.save();
+    return res.status(200).json({
+      status: 1,
+      message: "Match data added Successfully",
+    });
+  } catch (err) {
+    return res.status(200).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+/* Profile Image Delete
+Post */
+exports.deleteProfileImage = async (req, res) => {
+  try {
+    console.log(Object.keys(req.body)[1]);
+    var txt = Object.keys(req.body)[1];
+    var replace = txt.replace(/user/g, "c");
+    console.log(replace);
+    var findUser = await User.findOne({ c_unique_id: req.body.unique_id });
+
+    var resultHandler = function (err) {
+      if (err) {
         console.log("unlink failed", err);
-    } else {
+      } else {
         console.log("file deleted");
+      }
+    };
+    if (req.body.user_profile_image_1 && req.body.user_profile_image_1 === "") {
+      await fs.unlink(`uploads/${findUser.c_profile_image_1}`, resultHandler);
+      findUser.c_profile_image_1 = "";
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Image Deleted Successfully",
+      });
+    } else if (
+      req.body.user_profile_image_2 &&
+      req.body.user_profile_image_2 === ""
+    ) {
+      await fs.unlink(`uploads/${findUser.c_profile_image_2}`, resultHandler);
+      findUser.c_profile_image_2 = "";
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Image Deleted Successfully",
+      });
+    } else if (
+      req.body.user_profile_image_3 &&
+      req.body.user_profile_image_3 === ""
+    ) {
+      await fs.unlink(`uploads/${findUser.c_profile_image_3}`, resultHandler);
+      findUser.c_profile_image_3 = "";
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Image Deleted Successfully",
+      });
+    } else if (
+      req.body.user_profile_image_4 &&
+      req.body.user_profile_image_4 === ""
+    ) {
+      await fs.unlink(`uploads/${findUser.c_profile_image_4}`, resultHandler);
+      findUser.c_profile_image_4 = "";
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Image Deleted Successfully",
+      });
+    } else if (
+      req.body.user_profile_image_5 &&
+      req.body.user_profile_image_5 === ""
+    ) {
+      await fs.unlink(`uploads/${findUser.c_profile_image_5}`, resultHandler);
+      findUser.c_profile_image_5 = "";
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Image Deleted Successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "Image Not Found",
+      });
     }
-}
-console.log(findUser)
-
-   if(req.body.user_profile_image_1===""){
-    console.log("hi")
-     await fs.unlink(`uploads/${findUser.c_profile_image_1}`,resultHandler)
-   }
-   return res.status(200).json({
-    status:1,
-    message:"Deleted  Successfully"
-   })
-
-   }
-   catch(err){
+  } catch (err) {
+    return res.status(200).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+/* update profile
+ post */
+exports.updateProfile=async(req,res)=>{
+  try{
+    const findUser=await User.findOne({c_unique_id:req.body.unique_id})
+    if(findUser){
+        if(req.body.user_f_name){
+          findUser.c_f_name=req.body.user_f_name
+        }
+        if(req.body.user_l_name){
+          findUser.c_l_name=req.body.user_l_name
+        }
+        if(req.body.user_initial_name){
+          findUser.c_initial_name=req.body.user_initial_name
+        }
+        if(req.body.user_dob){
+          findUser.c_dob=req.body.user_dob
+        }
+        if(req.body.user_gender){
+          findUser.c_gender=req.body.user_gender
+        }
+        if(req.body.user_gender_preference){
+          findUser.c_gender_preference=req.body.user_gender_preference
+        }
+        if(req.body.user_here_for){
+          findUser.c_here_for=req.body.user_here_for
+        }
+        if(req.body.user_passion_1){
+          findUser.c_passion_1=req.body.user_passion_1
+        }
+        if(req.body.user_passion2){
+          findUser.c_passion2=req.body.user_passion2
+        }
+        if(req.body.user_lang){
+          findUser.c_lang=req.body.user_lang
+        }
+        if(req.body.user_bio){
+          findUser.c_bio=req.body.user_bio
+        }
+        if(req.body.user_gender_display){
+          findUser.c_gender_display=req.body.user_gender_display
+        }
+        if(req.body.user_display_name){
+          findUser.c_display_name=req.body.user_display_name
+        }
+        if(req.body.user_long){
+          findUser.c_long=req.body.user_long
+        }
+        if(req.body.user_lat){
+          findUser.c_lat=req.body.user_lat
+        }
+        if(req.body.user_device_info){
+          findUser.c_device_info=req.body.user_device_info
+        }
+        if(req.body.user_educational_qualification){
+          findUser.c_educational_qualification=req.body.user_educational_qualification
+        }
+        if(req.body.user_institution){
+          findUser.c_institution=req.body.user_institution
+        }
+        if(req.body.user_profession){
+          findUser.c_profession=req.body.user_profession
+        }
+        await findUser.save()
+        return res.status(200).json({
+          status:1,
+          message:"Updated Successfully"
+        })
+    }else{
+      return res.status(200).json({
+        status:0,
+        message:"User not found"
+      })
+    }
+  }catch(err){
     return res.status(200).json({
       status:0,
       message:err.message

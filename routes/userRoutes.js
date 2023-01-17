@@ -13,7 +13,8 @@ const {
   verifySelfie,
   reportProfile,
   sendMatch,
-  deleteProfileImage
+  deleteProfileImage,
+  updateProfile
 } = require("../controller/user");
 const {
   customerLike,
@@ -60,6 +61,7 @@ router.post("/requestotp", requestOtp);
 router.post("/otplogin", otpLogin);
 router.post("/verifySelfie", verifySelfie);
 router.post("/deleteprofileimage", deleteProfileImage);
+router.post("/updateprofile", updateProfile);
 //customer like management
 router.post("/customerlike", customerLike);
 router.post("/customersuperlike", customerSuperLike);
