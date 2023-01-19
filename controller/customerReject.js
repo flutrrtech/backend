@@ -4,7 +4,7 @@ exports.customerReject=async(req,res)=>{
     try{
         var rejectExist=await CustomerReject.findOne({crm_sender_unique_id:req.body.loggedin_unique_id,crm_receiver_unique_id:req.body.crm_receiver_unique_id})
         if(rejectExist){
-            rejectExist.crm_reject_time=new Date()
+            rejectExist.crm_reject_time+=1
             await rejectExist.save()
             return res.status(200).json({
                 status:1,

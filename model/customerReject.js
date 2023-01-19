@@ -5,8 +5,8 @@ const customerRejectSchema = new mongoose.Schema(
     crm_sender_unique_id: String,
     crm_receiver_unique_id: String,
     crm_reject_time:{
-      type:Date,
-      default:new Date()
+      type:Number,
+      default:1
     }
   },
   {

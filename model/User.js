@@ -119,6 +119,10 @@ const UserSchema = new mongoose.Schema({
   },
   c_otp: String,
   otp_verified: String,
+  c_is_verified:{
+    type:Boolean,
+    default:false
+  }
 },{
   timestamps:true
 });

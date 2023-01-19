@@ -14,7 +14,11 @@ const {
   reportProfile,
   sendMatch,
   deleteProfileImage,
-  updateProfile
+  updateProfile,
+  addHighlight,
+  deleteHighlight,
+  getSwipeData,
+  userVerified
 } = require("../controller/user");
 const {
   customerLike,
@@ -62,6 +66,14 @@ router.post("/otplogin", otpLogin);
 router.post("/verifySelfie", verifySelfie);
 router.post("/deleteprofileimage", deleteProfileImage);
 router.post("/updateprofile", updateProfile);
+router.post("/getswipedata", getSwipeData);
+router.post("/userverified", userVerified);
+
+
+//customer higlght management
+
+router.post("/addhighlight",upload.array("image",1), addHighlight);
+router.post("/deletehighlight", deleteHighlight);
 //customer like management
 router.post("/customerlike", customerLike);
 router.post("/customersuperlike", customerSuperLike);

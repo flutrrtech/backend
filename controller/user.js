@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const CustomerReport = require("../model/customerReport");
 const CustomerMatch = require("../model/customerMatch");
+const CustomerHighlight = require("../model/customerHighlight");
 const { URLSearchParams } = require("url");
 const fs = require("fs");
 
@@ -475,80 +476,214 @@ exports.deleteProfileImage = async (req, res) => {
 };
 /* update profile
  post */
-exports.updateProfile=async(req,res)=>{
+exports.updateProfile = async (req, res) => {
+  try {
+    const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
+    if (findUser) {
+      if (req.body.user_f_name) {
+        findUser.c_f_name = req.body.user_f_name;
+      }
+      if (req.body.user_l_name) {
+        findUser.c_l_name = req.body.user_l_name;
+      }
+      if (req.body.user_initial_name) {
+        findUser.c_initial_name = req.body.user_initial_name;
+      }
+      if (req.body.user_dob) {
+        findUser.c_dob = req.body.user_dob;
+      }
+      if (req.body.user_gender) {
+        findUser.c_gender = req.body.user_gender;
+      }
+      if (req.body.user_gender_preference) {
+        findUser.c_gender_preference = req.body.user_gender_preference;
+      }
+      if (req.body.user_here_for) {
+        findUser.c_here_for = req.body.user_here_for;
+      }
+      if (req.body.user_passion_1) {
+        findUser.c_passion_1 = req.body.user_passion_1;
+      }
+      if (req.body.user_passion2) {
+        findUser.c_passion2 = req.body.user_passion2;
+      }
+      if (req.body.user_lang) {
+        findUser.c_lang = req.body.user_lang;
+      }
+      if (req.body.user_bio) {
+        findUser.c_bio = req.body.user_bio;
+      }
+      if (req.body.user_gender_display) {
+        findUser.c_gender_display = req.body.user_gender_display;
+      }
+      if (req.body.user_display_name) {
+        findUser.c_display_name = req.body.user_display_name;
+      }
+      if (req.body.user_long) {
+        findUser.c_long = req.body.user_long;
+      }
+      if (req.body.user_lat) {
+        findUser.c_lat = req.body.user_lat;
+      }
+      if (req.body.user_device_info) {
+        findUser.c_device_info = req.body.user_device_info;
+      }
+      if (req.body.user_educational_qualification) {
+        findUser.c_educational_qualification =
+          req.body.user_educational_qualification;
+      }
+      if (req.body.user_institution) {
+        findUser.c_institution = req.body.user_institution;
+      }
+      if (req.body.user_profession) {
+        findUser.c_profession = req.body.user_profession;
+      }
+      await findUser.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Updated Successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "User not found",
+      });
+    }
+  } catch (err) {
+    return res.status(200).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+
+exports.getSwipeData = async (req, res) => {
+  try {
+    var result = await User.aggregate([
+      {
+        $geoNear: {
+           near: { type: "Point", coordinates: [  34.5435, 66.1313  ] },
+           distanceField: "0.1"
+        }
+      }
+    ]);
+    return res.status(200).json({
+      status:1,
+      data:result
+    })
+  } catch (err) {
+    return res.status(500).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+
+//add update highlight
+exports.addHighlight = async (req, res) => {
+  try {
+    var findHighlight = await CustomerHighlight.findOne({
+      ch_unique_id: req.body.unique_id,
+    });
+    if (findHighlight) {
+      var obj;
+      if(req.body.highlight && req.body.highlight.length>0){
+        JSON.parse(req.body.highlight)
+      }
+    for(var i=0;i<findHighlight.ch_highlight.length;i++){
+
+    
+        if (findHighlight.ch_highlight[i]._id == req.body.id) {
+          console.log("hi")
+          console.log(req.body.highlight[0].description)
+          if (req.body.highlight&&req.body.highlight[0].title) {
+            findHighlight.ch_highlight[i].title = req.body.highlight[0].title;
+          }
+          if (req.body.highlight && req.body.highlight[0].description) {
+            findHighlight.ch_highlight[i].description = req.body.highlight[0].description;
+          }
+          if (req.files.length > 0) {
+            findHighlight.ch_highlight[i].image = `uploads/${req.files[0].originalname}`;
+          }
+          var result=await findHighlight.save();
+        }
+    }
+      
+      return res.status(200).json({
+        status: 1,
+        message: "Highlight Updated Successfully",
+        data:result
+      });
+    } else {
+      var addHighlight = new CustomerHighlight();
+      addHighlight.c_unique_id = req.body.unique_id;
+      for (var i = 0; i < req.body.highlight.length; i++) {
+        var item = JSON.parse(req.body.highlight[i]);
+        console.log(item);
+        var obj = {
+          title: item.title,
+          description: item.description,
+          image: req.files[i] ? `uploads/${req.files[i].originalname}` : "",
+        };
+        addHighlight.ch_highlight.push(obj);
+      }
+      var result = await addHighlight.save();
+      result.ch_id = result._id;
+      await result.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Highlight added successfulyy",
+      });
+    }
+  } catch (err) {
+    return res.status(500).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+//delete Highlightes
+exports.deleteHighlight=async(req,res)=>{
   try{
-    const findUser=await User.findOne({c_unique_id:req.body.unique_id})
+   var result=await  CustomerHighlight.update(
+      { ch_id: req.body.unique_id }, 
+      { $pull: { ch_highlight: { 
+        _id: req.body.id } } }
+      
+  );
+  return res.status(200).json({
+   status:1,
+   message:"Highlight deleted successfully"
+  })
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+  })
+  }
+}
+
+//user verified
+exports.userVerified=async(req,res)=>{
+  try{
+
+    let findUser=await User.findOne({c_unique_id:req.body.unique_id})
     if(findUser){
-        if(req.body.user_f_name){
-          findUser.c_f_name=req.body.user_f_name
-        }
-        if(req.body.user_l_name){
-          findUser.c_l_name=req.body.user_l_name
-        }
-        if(req.body.user_initial_name){
-          findUser.c_initial_name=req.body.user_initial_name
-        }
-        if(req.body.user_dob){
-          findUser.c_dob=req.body.user_dob
-        }
-        if(req.body.user_gender){
-          findUser.c_gender=req.body.user_gender
-        }
-        if(req.body.user_gender_preference){
-          findUser.c_gender_preference=req.body.user_gender_preference
-        }
-        if(req.body.user_here_for){
-          findUser.c_here_for=req.body.user_here_for
-        }
-        if(req.body.user_passion_1){
-          findUser.c_passion_1=req.body.user_passion_1
-        }
-        if(req.body.user_passion2){
-          findUser.c_passion2=req.body.user_passion2
-        }
-        if(req.body.user_lang){
-          findUser.c_lang=req.body.user_lang
-        }
-        if(req.body.user_bio){
-          findUser.c_bio=req.body.user_bio
-        }
-        if(req.body.user_gender_display){
-          findUser.c_gender_display=req.body.user_gender_display
-        }
-        if(req.body.user_display_name){
-          findUser.c_display_name=req.body.user_display_name
-        }
-        if(req.body.user_long){
-          findUser.c_long=req.body.user_long
-        }
-        if(req.body.user_lat){
-          findUser.c_lat=req.body.user_lat
-        }
-        if(req.body.user_device_info){
-          findUser.c_device_info=req.body.user_device_info
-        }
-        if(req.body.user_educational_qualification){
-          findUser.c_educational_qualification=req.body.user_educational_qualification
-        }
-        if(req.body.user_institution){
-          findUser.c_institution=req.body.user_institution
-        }
-        if(req.body.user_profession){
-          findUser.c_profession=req.body.user_profession
-        }
-        await findUser.save()
-        return res.status(200).json({
-          status:1,
-          message:"Updated Successfully"
-        })
+      findUser.c_is_verified=true
+      await findUser.save()
+      return res.status(200).json({
+        status:1,
+        message:"User Verified Successfully"
+      })
     }else{
       return res.status(200).json({
         status:0,
-        message:"User not found"
+        message:"User Not Found"
       })
     }
+
   }catch(err){
-    return res.status(200).json({
+    return res.status(500).json({
       status:0,
       message:err.message
     })
