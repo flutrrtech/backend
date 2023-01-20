@@ -122,7 +122,8 @@ const UserSchema = new mongoose.Schema({
   c_is_verified:{
     type:Boolean,
     default:false
-  }
+  },
+  c_age:Number
 },{
   timestamps:true
 });

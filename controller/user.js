@@ -5,7 +5,10 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const CustomerReport = require("../model/customerReport");
 const CustomerMatch = require("../model/customerMatch");
+const CustomerLike = require("../model/customerLike");
+const CustomerReject = require("../model/customerReject");
 const CustomerHighlight = require("../model/customerHighlight");
+var format = require('date-format');
 const { URLSearchParams } = require("url");
 const fs = require("fs");
 
@@ -491,6 +494,18 @@ exports.updateProfile = async (req, res) => {
       }
       if (req.body.user_dob) {
         findUser.c_dob = req.body.user_dob;
+        var today = new Date();
+        var dob=req.body.user_dob.split('/')
+        req.body.user_dob=dob[2]+"-"+dob[1]+"-"+dob[0]
+                // req.user_dob=format(req.body.user_dob)
+        var birthDate = new Date(req.body.user_dob);
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        console.log(age)
+        findUser.c_age = age;
       }
       if (req.body.user_gender) {
         findUser.c_gender = req.body.user_gender;
@@ -558,25 +573,54 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.getSwipeData = async (req, res) => {
-  try {
-    var result = await User.aggregate([
-      {
-        $geoNear: {
-           near: { type: "Point", coordinates: [  34.5435, 66.1313  ] },
-           distanceField: "0.1"
-        }
-      }
-    ]);
-    return res.status(200).json({
-      status:1,
-      data:result
-    })
-  } catch (err) {
-    return res.status(500).json({
-      status: 0,
-      message: err.message,
+  // try {
+    var user = await User.findOne({ c_unique_id:req.body.logged_in_unique_id });
+
+    //get user like profile
+    var likeUser = await CustomerLike.find({
+      clm_sender_unique_id: req.body.logged_in_unique_id,
+    }).select("clm_receiver_unique_id");
+    var arr = await likeUser.map((item) => {
+      return item.clm_receiver_unique_id;
     });
-  }
+    //
+    //rejected user list
+    var customerReject = [];
+    if (user.c_gender === "Men") {
+      customerReject = await customerReject.find({
+        crm_sender_unique_id: req.body.logged_in_unique_id,
+        crm_reject_unique_id: { $gt: 2 },
+      });
+    } else {
+      customerReject = await CustomerReject.find({
+        crm_sender_unique_id: req.body.logged_in_unique_id,
+      });
+    }
+    var arr2 = await customerReject.map((item) => {
+      return item.crm_receiver_unique_id;
+    });
+    console.log(likeUser);
+    var response = await User.find({
+      $and: [{c_unique_id:{$ne:req.body.logged_in_unique_id}},{ c_unique_id: { $nin: arr } }, { c_unique_id: { $nin: arr2 }, },{c_age:{$gt:user.c_age-5,$lt:user.c_age+5}}],
+    });
+    // var result = await User.aggregate([
+    //   {
+    //     $geoNear: {
+    //        near: { type: "Point", coordinates: [  34.5435, 66.1313  ] },
+    //        distanceField: "0.1"
+    //     }
+    //   }
+    // ]);
+    return res.status(200).json({
+      status: 1,
+      data: response,
+    });
+  // } catch (err) {
+  //   return res.status(500).json({
+  //     status: 0,
+  //     message: err.message,
+  //   });
+  // }
 };
 
 //add update highlight
@@ -587,32 +631,33 @@ exports.addHighlight = async (req, res) => {
     });
     if (findHighlight) {
       var obj;
-      if(req.body.highlight && req.body.highlight.length>0){
-        JSON.parse(req.body.highlight)
+      if (req.body.highlight && req.body.highlight.length > 0) {
+        JSON.parse(req.body.highlight);
       }
-    for(var i=0;i<findHighlight.ch_highlight.length;i++){
-
-    
+      for (var i = 0; i < findHighlight.ch_highlight.length; i++) {
         if (findHighlight.ch_highlight[i]._id == req.body.id) {
-          console.log("hi")
-          console.log(req.body.highlight[0].description)
-          if (req.body.highlight&&req.body.highlight[0].title) {
+          console.log("hi");
+          console.log(req.body.highlight[0].description);
+          if (req.body.highlight && req.body.highlight[0].title) {
             findHighlight.ch_highlight[i].title = req.body.highlight[0].title;
           }
           if (req.body.highlight && req.body.highlight[0].description) {
-            findHighlight.ch_highlight[i].description = req.body.highlight[0].description;
+            findHighlight.ch_highlight[i].description =
+              req.body.highlight[0].description;
           }
           if (req.files.length > 0) {
-            findHighlight.ch_highlight[i].image = `uploads/${req.files[0].originalname}`;
+            findHighlight.ch_highlight[
+              i
+            ].image = `uploads/${req.files[0].originalname}`;
           }
-          var result=await findHighlight.save();
+          var result = await findHighlight.save();
         }
-    }
-      
+      }
+
       return res.status(200).json({
         status: 1,
         message: "Highlight Updated Successfully",
-        data:result
+        data: result,
       });
     } else {
       var addHighlight = new CustomerHighlight();
@@ -643,49 +688,51 @@ exports.addHighlight = async (req, res) => {
   }
 };
 //delete Highlightes
-exports.deleteHighlight=async(req,res)=>{
-  try{
-   var result=await  CustomerHighlight.update(
-      { ch_id: req.body.unique_id }, 
-      { $pull: { ch_highlight: { 
-        _id: req.body.id } } }
-      
-  );
-  return res.status(200).json({
-   status:1,
-   message:"Highlight deleted successfully"
-  })
-  }catch(err){
+exports.deleteHighlight = async (req, res) => {
+  try {
+    var result = await CustomerHighlight.update(
+      { ch_id: req.body.unique_id },
+      {
+        $pull: {
+          ch_highlight: {
+            _id: req.body.id,
+          },
+        },
+      }
+    );
+    return res.status(200).json({
+      status: 1,
+      message: "Highlight deleted successfully",
+    });
+  } catch (err) {
     return res.status(500).json({
-      status:0,
-      message:err.message
-  })
+      status: 0,
+      message: err.message,
+    });
   }
-}
+};
 
 //user verified
-exports.userVerified=async(req,res)=>{
-  try{
-
-    let findUser=await User.findOne({c_unique_id:req.body.unique_id})
-    if(findUser){
-      findUser.c_is_verified=true
-      await findUser.save()
+exports.userVerified = async (req, res) => {
+  try {
+    let findUser = await User.findOne({ c_unique_id: req.body.unique_id });
+    if (findUser) {
+      findUser.c_is_verified = true;
+      await findUser.save();
       return res.status(200).json({
-        status:1,
-        message:"User Verified Successfully"
-      })
-    }else{
+        status: 1,
+        message: "User Verified Successfully",
+      });
+    } else {
       return res.status(200).json({
-        status:0,
-        message:"User Not Found"
-      })
+        status: 0,
+        message: "User Not Found",
+      });
     }
-
-  }catch(err){
+  } catch (err) {
     return res.status(500).json({
-      status:0,
-      message:err.message
-    })
+      status: 0,
+      message: err.message,
+    });
   }
-}
+};
