@@ -8,6 +8,7 @@ const CustomerMatch = require("../model/customerMatch");
 const CustomerLike = require("../model/customerLike");
 const CustomerReject = require("../model/customerReject");
 const CustomerHighlight = require("../model/customerHighlight");
+const CustomerPreference = require("../model/customerPreference");
 var format = require('date-format');
 const { URLSearchParams } = require("url");
 const fs = require("fs");
@@ -571,9 +572,10 @@ exports.updateProfile = async (req, res) => {
     });
   }
 };
-
+/* get swipe data
+ post */
 exports.getSwipeData = async (req, res) => {
-  // try {
+  try {
     var user = await User.findOne({ c_unique_id:req.body.logged_in_unique_id });
 
     //get user like profile
@@ -599,10 +601,10 @@ exports.getSwipeData = async (req, res) => {
     var arr2 = await customerReject.map((item) => {
       return item.crm_receiver_unique_id;
     });
-    console.log(likeUser);
+    // console.log(likeUser);
     var response = await User.find({
-      $and: [{c_unique_id:{$ne:req.body.logged_in_unique_id}},{ c_unique_id: { $nin: arr } }, { c_unique_id: { $nin: arr2 }, },{c_age:{$gt:user.c_age-5,$lt:user.c_age+5}}],
-    });
+      $and: [{c_unique_id:{$ne:req.body.logged_in_unique_id}},{ c_unique_id: { $nin: arr } }, { c_unique_id: { $nin: arr2 }, },{c_age:{$gt:user.c_age-5,$lt:user.c_age+5}},{c_gender:user.c_gender_preference}],
+    }).sort({c_is_boost:-1}).limit(20);
     // var result = await User.aggregate([
     //   {
     //     $geoNear: {
@@ -613,14 +615,15 @@ exports.getSwipeData = async (req, res) => {
     // ]);
     return res.status(200).json({
       status: 1,
+      message:"Data Fetched Successfully",
       data: response,
     });
-  // } catch (err) {
-  //   return res.status(500).json({
-  //     status: 0,
-  //     message: err.message,
-  //   });
-  // }
+  } catch (err) {
+    return res.status(500).json({
+      status: 0,
+      message: err.message,
+    });
+  }
 };
 
 //add update highlight
@@ -736,3 +739,148 @@ exports.userVerified = async (req, res) => {
     });
   }
 };
+
+exports.getTopPick=async(req,res)=>{
+  try{
+  var findUser=await User.findOne({c_unique_id:req.body.logged_in_unique_id})
+  if(findUser){
+
+  }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+/* set customer preference
+ post */
+ exports.updatePreference=async(req,res)=>{
+  try{
+    var findCustomer=await CustomerPreference.findOne({cp_c_unique_id:req.body.logged_in_unique_id})
+    if(findCustomer){
+      findCustomer.cp_passion_1=req.body.passion_1!=""?req.body.passion_1:findUser.cp_passion_1
+      findCustomer.cp_passion_2=req.body.passion_2!=""?req.body.passion_2:findUser.cp_passion_2
+      findCustomer.cp_passion_3=req.body.passion_3!=""?req.body.passion_3:findUser.cp_passion_3
+      findCustomer.cp_age_from=req.body.age_from!=""?req.body.age_from:findUser.cp_age_from
+      findCustomer.cp_age_to=req.body.age_to!=""?req.body.age_to:findUser.cp_age_to
+      findCustomer.cp_distance_upto=req.body.distance_upto!=""?req.body.distance_upto:findUser.cp_distance_upto
+      findCustomer.cp_see_pan_india_profile=req.body.see_pan_india_profile!=""?req.body.see_pan_india_profile:findUser.cp_see_pan_india_profile
+      findCustomer.cp_users_with_bio=req.body.users_with_bio!=""?req.body.users_with_bio:findUser.cp_users_with_bio
+      await findUser.save()
+      return  res.status(200).json({
+        status:1,
+        message:"Preferemnce Updated Successfully"
+      })
+    }else{
+      var newPreference=new CustomerPreference()
+      newPreference.cp_c_unique_id=req.body.unique_id
+      newPreference.cp_passion_1=req.body.passion_1!=""?req.body.passion_1:""
+      newPreference.cp_passion_2=req.body.passion_2!=""?req.body.passion_2:""
+      newPreference.cp_passion_3=req.body.passion_3!=""?req.body.passion_3:""
+      newPreference.cp_age_from=req.body.age_from!=""?req.body.age_from:""
+      newPreference.cp_age_to=req.body.age_to!=""?req.body.age_to:""
+      newPreference.cp_distance_upto=req.body.distance_upto!=""?req.body.distance_upto:""
+      newPreference.cp_see_pan_india_profile=req.body.see_pan_india_profile!=""?req.body.see_pan_india_profile:""
+      newPreference.cp_users_with_bio=req.body.users_with_bio!=""?req.body.users_with_bio:""
+
+      await newPreference.save()
+      return  res.status(200).json({
+        status:1,
+        message:"Preferemnce Updated Successfully"
+      })
+    }
+
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+ }
+ /* get preference
+  */
+ exports.getPreference=async(req,res)=>{
+  try{
+    var getPreference=await CustomerPreference.findOne({cp_c_unique_id:req.body.logged_in_unique_id})
+    if(getPreference){
+      return res.status(200).json({
+        status:1,
+        message:"Data Fetched Successfully",
+        data:getPreference
+      })
+    }else{
+      return res.status(200).json({
+        status:0,
+        message:"Data Not Found",
+        
+      })
+    }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+ }
+ 
+ /* get super like
+ post */
+ exports.getSuperLike=async(req,res)=>{
+  // try{
+    var user = await User.findOne({ c_unique_id:req.body.unique_id });
+    
+    //like management
+    var likeUser = await CustomerLike.find({
+      clm_sender_unique_id: req.body.unique_id,
+    }).select("clm_receiver_unique_id");
+    var arr = await likeUser.map((item) => {
+      return item.clm_receiver_unique_id;
+    });
+    //reject management
+    var customerReject = [];
+    if (user.c_gender === "Men") {
+      customerReject = await customerReject.find({
+        crm_sender_unique_id: req.body.unique_id,
+        crm_reject_unique_id: { $gt: 2 },
+      });
+    } else {
+      customerReject = await CustomerReject.find({
+        crm_sender_unique_id: req.body.unique_id,
+      });
+    }
+    var arr2 = await customerReject.map((item) => {
+      return item.crm_receiver_unique_id;
+    });
+    var result=await CustomerLike.aggregate([
+      {$match:{clm_receiver_unique_id:user.c_unique_id}},
+     {
+      
+      $lookup:{
+        from:'users',
+        "localField":"clm_sender_unique_id",
+        "foreignField":"c_unique_id",
+        "as":"Customer_Detail"
+
+      }
+      
+     },
+     
+      {$match:{clm_is_super_like:1}},
+      {$match:{clm_sender_unique_id:{$nin:arr}}},
+      {$match:{clm_sender_unique_id:{$nin:arr2}}},
+     
+    ])
+  return res.status(200).json({
+    status:1,
+    message:"Super liked data fetched successfully",
+    data:result
+
+  })
+  // }catch(err){
+  //   return res.status(500).json({
+  //     status:0,
+  //     message:err.message
+  //   })
+  // }
+ }

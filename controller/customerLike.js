@@ -53,6 +53,7 @@ exports.customerSuperLike=async(req,res)=>{
             customerLike.clm_sender_unique_id=req.body.loggedin_unique_id
             customerLike.clm_receiver_unique_id=req.body.user_receiver_unique_id
             customerLike.clm_super_like_msg=req.body.user_super_like_msg
+            customerLike.clm_is_super_like=1
             var result=await customerLike.save()
             result.clm_id=result._id
             result.clm_like_time=new Date()

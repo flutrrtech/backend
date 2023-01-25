@@ -18,7 +18,10 @@ const {
   addHighlight,
   deleteHighlight,
   getSwipeData,
-  userVerified
+  userVerified,
+  updatePreference,
+  getPreference,
+  getSuperLike
 } = require("../controller/user");
 const {
   customerLike,
@@ -78,7 +81,7 @@ router.post("/deletehighlight", deleteHighlight);
 router.post("/customerlike", customerLike);
 router.post("/customersuperlike", customerSuperLike);
 router.post("/getlikeduser", getLikedUser);
-
+router.post("/getsuperlike", getSuperLike);
 
 //customer reject management
 router.post("/customerreject", customerReject);
@@ -87,5 +90,10 @@ router.post("/customerrewindreject", customerRewindReject);
 router.post("/customerreportprofile", reportProfile);
 
 router.post("/customersendmatch", sendMatch);
+
+//preference
+router.post("/customerupdatepreference",updatePreference )
+router.post("/customergetpreference",getPreference )
+
 // Importing the router
 module.exports = router;
