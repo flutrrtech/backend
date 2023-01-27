@@ -9,6 +9,7 @@ const CustomerLike = require("../model/customerLike");
 const CustomerReject = require("../model/customerReject");
 const CustomerHighlight = require("../model/customerHighlight");
 const CustomerPreference = require("../model/customerPreference");
+const CustomerTopPick= require("../model/topPick");
 var format = require('date-format');
 const { URLSearchParams } = require("url");
 const fs = require("fs");
@@ -744,7 +745,29 @@ exports.getTopPick=async(req,res)=>{
   try{
   var findUser=await User.findOne({c_unique_id:req.body.logged_in_unique_id})
   if(findUser){
-
+    var result
+    var length=await CustomerTopPick.find()
+   if(findUser.c_gender=="Male"){
+     result=await CustomerTopPick.find({c_gender:"Female"})
+    .limit(6)
+    .skip(Math.floor(Math.random() * length))
+    .next()
+   }else{
+     result=await CustomerTopPick.find({c_gender:"Male"})
+    .limit(6)
+    .skip(Math.floor(Math.random() * length))
+    .next()
+   }
+   var arr=[]
+   await result.map(async(item)=>{
+    var res=await User.findOne({c_unique_id:item.c_unique_id})
+    arr.push(res)
+   })
+   return res.status(200).json({
+    status:1,
+    messgae:"Top picked data sent",
+    data:arr
+   })
   }
   }catch(err){
     return res.status(500).json({
@@ -884,3 +907,56 @@ exports.getTopPick=async(req,res)=>{
   //   })
   // }
  }
+
+ /* frezze basic info by user
+   post */
+
+   exports.frezzeBasicInfo=async(req,res)=>{
+    try{
+     var findUser=await User.findOne({c_unique_id:req.body.loggedin_unique_id})
+     if(findUser){
+      findUser.c_freeze_basic_info=req.body.val
+      await findUser.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data Updated Successfuly"
+      })
+     }else{
+      return res.status(200).json({
+        status:0,
+        message:"User Not Found"
+      })
+     }
+    }catch(err){
+      return res.status(500).json({
+        status:0,
+        message:err.message
+      })
+    }
+   }
+
+/* ghost mode
+ post */
+   exports.ghostMode=async(req,res)=>{
+    try{
+     var findUser=await User.findOne({c_unique_id:req.body.loggedin_unique_id})
+     if(findUser){
+      findUser.c_is_ghost_mode=req.body.val
+      await findUser.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data Updated Successfuly"
+      })
+     }else{
+      return res.status(200).json({
+        status:0,
+        message:"User Not Found"
+      })
+     }
+    }catch(err){
+      return res.status(500).json({
+        status:0,
+        message:err.message
+      })
+    }
+   }
