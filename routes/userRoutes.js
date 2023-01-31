@@ -24,7 +24,9 @@ const {
   getSuperLike,
   frezzeBasicInfo,
   ghostMode,
-  deleteUser
+  deleteUser,
+  settingUser,
+  getUserSetting
 } = require("../controller/user");
 const {
   customerLike,
@@ -77,6 +79,8 @@ router.post("/userverified", userVerified);
 router.post("/frezzebasicinfo", frezzeBasicInfo);
 router.post("/ghostMode", ghostMode);
 router.post("/deleteuser", deleteUser);
+router.post("/settinguser", settingUser);
+router.post("/getsettinguser", getUserSetting);
 //customer higlght management
 
 router.post("/addhighlight",upload.array("image",1), addHighlight);

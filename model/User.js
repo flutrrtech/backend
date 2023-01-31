@@ -123,6 +123,11 @@ const UserSchema = new mongoose.Schema({
     type:Boolean,
     default:false
   },
+  c_home:String,
+  c_educational_level:String,
+  c_work:String,
+  c_zodiac_sign:String,
+  c_religious_belief:String,
   c_age:Number
 },{
   timestamps:true

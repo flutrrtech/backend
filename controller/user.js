@@ -10,6 +10,7 @@ const CustomerReject = require("../model/customerReject");
 const CustomerHighlight = require("../model/customerHighlight");
 const CustomerPreference = require("../model/customerPreference");
 const CustomerTopPick = require("../model/topPick");
+const CustomerSetting = require("../model/settingAll");
 var format = require("date-format");
 const { URLSearchParams } = require("url");
 const fs = require("fs");
@@ -483,6 +484,7 @@ exports.deleteProfileImage = async (req, res) => {
  post */
 exports.updateProfile = async (req, res) => {
   try {
+    
     const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
     if (findUser) {
       if (req.body.user_f_name) {
@@ -554,6 +556,22 @@ exports.updateProfile = async (req, res) => {
       }
       if (req.body.user_profession) {
         findUser.c_profession = req.body.user_profession;
+      }
+      if (req.body.home) {
+        findUser.c_home = req.body.home;
+      }
+      if (req.body.educational_level) {
+        findUser.c_educational_level = req.body.educational_level;
+      }
+      if (req.body.work) {
+        findUser.c_work = req.body.work;
+      }
+      if (req.body.zodiac_sign) {
+        findUser.c_zodiac_sign = req.body.zodiac_sign;
+      }
+      if (req.body.religious_belief) {
+       console.log("hi")
+  findUser.c_religious_belief= req.body.religious_belief;
       }
       await findUser.save();
       return res.status(200).json({
@@ -1021,3 +1039,117 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+
+
+
+/* setting api
+ post */
+exports.settingUser = async (req, res) => {
+  try {
+    var findSetting = await CustomerSetting.findOne({ c_unique_id: req.body.unique_id });
+    if (findSetting) {
+      if(req.body.display_info!=null){
+        findSetting.c_display_info=req.body.display_info
+      }
+      if(req.body.hide_location!=null){
+        findSetting.c_hide_location=req.body.hide_location
+      }
+      if(req.body.sexual_orientation!=null){
+        findSetting.c_sexual_orientation=req.body.sexual_orientation
+      }
+      if(req.body.want_to_see){
+        findSetting.c_want_to_see=req.body.want_to_see
+      }
+      if(req.body.push_notification!=null){
+        findSetting.c_push_notification=req.body.push_notification
+      }
+      if(req.body.email_notification!=null){
+        findSetting.c_email_notification=req.body.email_notification
+      }
+      if(req.body.dark_mode!=null){
+        findSetting.c_dark_mode=req.body.dark_mode
+      }
+      if(req.body.language!=null){
+        findSetting.c_language=req.body.language
+      }
+      if(req.body.freeze_account!=null){
+        findSetting.c_freeze_account=req.body.freeze_account
+      }
+      if(req.body.help_text){
+        findSetting.c_help_text=req.body.help_text
+      }
+      await findSetting.save()
+      return res.status(200).json({
+        status:1,
+        message:"Setting Updated Successfully"
+      })
+    } else {
+      var newSetting=new CustomerSetting()
+      if(req.body.unique_id){
+        newSetting.c_unique_id=req.body.unique_id
+      }
+      if(req.body.display_info){
+        newSetting.c_display_info=req.body.display_info
+      }
+      if(req.body.hide_location){
+        newSetting.c_hide_location=req.body.hide_location
+      }
+      if(req.body.sexual_orientation){
+        newSetting.c_sexual_orientation=req.body.sexual_orientation
+      }
+      if(req.body.want_to_see){
+        newSetting.c_want_to_see=req.body.want_to_see
+      }
+      if(req.body.push_notification){
+        newSetting.c_push_notification=req.body.push_notification
+      }
+      if(req.body.email_notification){
+        newSetting.c_email_notification=req.body.email_notification
+      }
+      if(req.body.dark_mode){
+        newSetting.c_dark_mode=req.body.dark_mode
+      }
+      if(req.body.language){
+        newSetting.c_language=req.body.language
+      }
+      if(req.body.freeze_account){
+        newSetting.c_freeze_account=req.body.freeze_account
+      }
+      if(req.body.help_text){
+        newSetting.c_help_text=req.body.help_text
+      }
+      await newSetting.save()
+      return res.status(200).json({
+        status:1,
+        message:"Setting Updated Successfully"
+      })
+    }
+  } catch (err) {
+    return res.status(500).json({
+      status: 0,
+      message: err.message,
+    });
+  }
+};
+exports.getUserSetting=async(req,res)=>{
+  try{
+    var findSetting=await CustomerSetting.findOne({c_unique_id:req.body.unique_id})
+    if(findSetting){
+      return res.status(200).json({
+        status:1,
+        message:"Data Fetched Successfully",
+        data:findSetting
+      })
+    }else{
+      return res.status(200).json({
+        status:0,
+        message:"Data Not Found"
+      })
+    }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
