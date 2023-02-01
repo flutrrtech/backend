@@ -540,9 +540,11 @@ exports.updateProfile = async (req, res) => {
       }
       if (req.body.user_long) {
         findUser.c_long = req.body.user_long;
+        findUser.coordinates.push(req.body.user_long)
       }
       if (req.body.user_lat) {
         findUser.c_lat = req.body.user_lat;
+        findUser.coordinates.push(req.body.user_lat)
       }
       if (req.body.user_device_info) {
         findUser.c_device_info = req.body.user_device_info;
@@ -622,14 +624,19 @@ exports.getSwipeData = async (req, res) => {
     var arr2 = await customerReject.map((item) => {
       return item.crm_receiver_unique_id;
     });
+    //await User.createIndex({coordinates: "2dsphere"})
     // console.log(likeUser);
     var response = await User.find({
       $and: [
         { c_unique_id: { $ne: req.body.logged_in_unique_id } },
         { c_unique_id: { $nin: arr } },
         { c_unique_id: { $nin: arr2 } },
-        { c_age: { $gt: user.c_age - 5, $lt: user.c_age + 5 } },
+        { c_age: { $gt: parseInt(user.c_age )- 5, $lt: parseInt(user.c_age) + 5 } },
         { c_gender: user.c_gender_preference },
+        // { 
+        //   coordinates: { 
+        //      $near : [ -73.9667, 40.78 ], $maxDistance: 0.10 }
+        //   }
       ],
     })
       .sort({ c_is_boost: -1 })
@@ -668,8 +675,8 @@ exports.addHighlight = async (req, res) => {
       }
       for (var i = 0; i < findHighlight.ch_highlight.length; i++) {
         if (findHighlight.ch_highlight[i]._id == req.body.id) {
-          console.log("hi");
-          console.log(req.body.highlight[0].description);
+        //  console.log("hi");
+        //  console.log(req.body.highlight[0].description);
           if (req.body.highlight && req.body.highlight[0].title) {
             findHighlight.ch_highlight[i].title = req.body.highlight[0].title;
           }
@@ -957,7 +964,7 @@ exports.getSuperLike = async (req, res) => {
     })
   }
 };
-
+ 
 /* frezze basic info by user
    post */
 
@@ -1131,6 +1138,8 @@ exports.settingUser = async (req, res) => {
     });
   }
 };
+/*get user setting
+ */
 exports.getUserSetting=async(req,res)=>{
   try{
     var findSetting=await CustomerSetting.findOne({c_unique_id:req.body.unique_id})
@@ -1144,6 +1153,60 @@ exports.getUserSetting=async(req,res)=>{
       return res.status(200).json({
         status:0,
         message:"Data Not Found"
+      })
+    }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+/*
+ report selfie
+ */
+exports.reportSelfie=async(req,res)=>{
+  try{
+    var findUser=await User.findOne({c_unique_id:req.body.unique_id})
+    if(findUser){
+      findUser.selfie=req.body.user_selfie_report
+      await findUser.save()
+      return res.status(200).json({
+        status:1,
+        message:"Selfie report Submitted Successfully"
+      })
+    }else{
+      return res.status(200).json({
+        status:0,
+        message:"User Not Found"
+      })
+    }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+    message:err.message  
+    })
+  }
+}
+/* update selfie
+ */
+exports.updateSelfie=async(req,res)=>{
+  try{
+    var findUser=await User.findOne({c_unique_id:req.body.unique_id})
+    
+    if(req.file&&findUser){
+      
+        findUser.c_selfie_pic = `uploads/${req.file.filename}`;
+      
+      await findUser.save()
+      return res.status(200).json({
+        status:1,
+        message:"Selfie updated successfully"
+      })
+    }else{
+      return res.status(200).json({
+        status:0,
+        message:"User Not Found"
       })
     }
   }catch(err){

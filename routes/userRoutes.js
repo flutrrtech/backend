@@ -26,7 +26,9 @@ const {
   ghostMode,
   deleteUser,
   settingUser,
-  getUserSetting
+  getUserSetting,
+  reportSelfie,
+  updateSelfie
 } = require("../controller/user");
 const {
   customerLike,
@@ -81,6 +83,7 @@ router.post("/ghostMode", ghostMode);
 router.post("/deleteuser", deleteUser);
 router.post("/settinguser", settingUser);
 router.post("/getsettinguser", getUserSetting);
+router.post("/updateselfie",upload.single('image'), updateSelfie);
 //customer higlght management
 
 router.post("/addhighlight",upload.array("image",1), addHighlight);
@@ -98,7 +101,7 @@ router.post("/customerrewindreject", customerRewindReject);
 router.post("/customerreportprofile", reportProfile);
 
 router.post("/customersendmatch", sendMatch);
-
+router.post("/customerreportselfie", reportSelfie);
 //preference
 router.post("/customerupdatepreference",updatePreference )
 router.post("/customergetpreference",getPreference )

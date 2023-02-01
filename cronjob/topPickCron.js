@@ -26,7 +26,7 @@ cron.schedule('* * * * * *', async() => {
         }
         if(count>=2){
             var likeCount=await CustomerLike.find({clm_receiver_unique_id:totalUser[i].c_unique_id})
-            if(likeCount>2&&totalUser[i].c_gender=="Male"||likeCount>15&&totalUser[i].c_gender=="Female"){
+            if(likeCount.length>2&&totalUser[i].c_gender=="Male"||likeCount.length>15&&totalUser[i].c_gender=="Female"){
                 var customerTopPick=new CustomerTopPick()
                 customerTopPick.c_unique_id=totalUser[i].c_unique_id
                 customerTopPick.c_gender=totalUser[i].c_gender=="Male"?"Female":"Male"

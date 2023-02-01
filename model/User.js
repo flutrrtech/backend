@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema({
   c_firebase_token: String,
   c_device_info: String,
   c_facebook_token: String,
+  coordinates:[],
   c_profile_image_1: {
     type: String,
     default: "",
