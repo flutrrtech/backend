@@ -541,6 +541,7 @@ exports.updateProfile = async (req, res) => {
         findUser.c_display_name = req.body.user_display_name;
       }
       if (req.body.user_long) {
+        findUser.coordinates=[]
         findUser.c_long = req.body.user_long;
         findUser.coordinates.push(parseFloat(req.body.user_long))
       }
