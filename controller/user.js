@@ -51,6 +51,7 @@ exports.userRegistration = async (req, res) => {
     (user.c_firebase_token = req.body.user_firebase_token),
     (user.c_device_info = req.body.user_device_info),
     (user.c_facebook_token = req.body.user_facebook_token);
+    user.coordinates=[]
   let otp = await randomOtpGenerator();
   user.c_otp = otp;
   user.otp_verified = "1";
@@ -483,10 +484,11 @@ exports.deleteProfileImage = async (req, res) => {
 /* update profile
  post */
 exports.updateProfile = async (req, res) => {
-  try {
+  // try {
     
     const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
     if (findUser) {
+      console.log(findUser)
       if (req.body.user_f_name) {
         findUser.c_f_name = req.body.user_f_name;
       }
@@ -540,11 +542,11 @@ exports.updateProfile = async (req, res) => {
       }
       if (req.body.user_long) {
         findUser.c_long = req.body.user_long;
-        findUser.coordinates.push(req.body.user_long)
+        findUser.coordinates.push(parseFloat(req.body.user_long))
       }
       if (req.body.user_lat) {
         findUser.c_lat = req.body.user_lat;
-        findUser.coordinates.push(req.body.user_lat)
+        findUser.coordinates.push(parseFloat(req.body.user_lat))
       }
       if (req.body.user_device_info) {
         findUser.c_device_info = req.body.user_device_info;
@@ -586,17 +588,17 @@ exports.updateProfile = async (req, res) => {
         message: "User not found",
       });
     }
-  } catch (err) {
-    return res.status(200).json({
-      status: 0,
-      message: err.message,
-    });
-  }
+  // } catch (err) {
+  //   return res.status(200).json({
+  //     status: 0,
+  //     message: err.message,
+  //   });
+  // }
 };
 /* get swipe data
  post */
 exports.getSwipeData = async (req, res) => {
-  try {
+  // try {
     var user = await User.findOne({
       c_unique_id: req.body.logged_in_unique_id,
     });
@@ -611,8 +613,8 @@ exports.getSwipeData = async (req, res) => {
     //
     //rejected user list
     var customerReject = [];
-    if (user.c_gender === "Men") {
-      customerReject = await customerReject.find({
+    if (user.c_gender === "Man") {
+      customerReject = await CustomerReject.find({
         crm_sender_unique_id: req.body.logged_in_unique_id,
         crm_reject_unique_id: { $gt: 2 },
       });
@@ -624,8 +626,10 @@ exports.getSwipeData = async (req, res) => {
     var arr2 = await customerReject.map((item) => {
       return item.crm_receiver_unique_id;
     });
+    // console.log(customerReject)
     //await User.createIndex({coordinates: "2dsphere"})
     // console.log(likeUser);
+    //await User.index({coordinates: "2dsphere"})
     var response = await User.find({
       $and: [
         { c_unique_id: { $ne: req.body.logged_in_unique_id } },
@@ -633,10 +637,18 @@ exports.getSwipeData = async (req, res) => {
         { c_unique_id: { $nin: arr2 } },
         { c_age: { $gt: parseInt(user.c_age )- 5, $lt: parseInt(user.c_age) + 5 } },
         { c_gender: user.c_gender_preference },
-        // { 
-        //   coordinates: { 
-        //      $near : [ -73.9667, 40.78 ], $maxDistance: 0.10 }
-        //   }
+        
+           {
+            coordinates: { 
+              $nearSphere: { 
+                  $geometry: { 
+                      type: "Point", 
+                      coordinates: [ parseFloat(user.c_long) ,parseFloat(user.c_lat) ] 
+                  }, 
+                  $maxDistance: 100 
+              } 
+          }
+          }
       ],
     })
       .sort({ c_is_boost: -1 })
@@ -654,12 +666,12 @@ exports.getSwipeData = async (req, res) => {
       message: "Data Fetched Successfully",
       data: response,
     });
-  } catch (err) {
-    return res.status(500).json({
-      status: 0,
-      message: err.message,
-    });
-  }
+  // } catch (err) {
+  //   return res.status(500).json({
+  //     status: 0,
+  //     message: err.message,
+  //   });
+  // }
 };
 
 //add update highlight
@@ -924,7 +936,7 @@ exports.getSuperLike = async (req, res) => {
   });
   //reject management
   var customerReject = [];
-  if (user.c_gender === "Men") {
+  if (user.c_gender === "Man") {
     customerReject = await customerReject.find({
       crm_sender_unique_id: req.body.unique_id,
       crm_reject_unique_id: { $gt: 2 },

@@ -21,7 +21,11 @@ const UserSchema = new mongoose.Schema({
   c_firebase_token: String,
   c_device_info: String,
   c_facebook_token: String,
-  coordinates:[],
+  coordinates:{
+    type:Array,
+    default:[],
+    index:true
+  },
   c_profile_image_1: {
     type: String,
     default: "",
@@ -133,5 +137,5 @@ const UserSchema = new mongoose.Schema({
 },{
   timestamps:true
 });
-
+// UserSchema.index({coordinates:"2dsphere"})
 module.exports = mongoose.model("User", UserSchema);
