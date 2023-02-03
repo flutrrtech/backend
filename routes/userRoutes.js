@@ -28,7 +28,8 @@ const {
   settingUser,
   getUserSetting,
   reportSelfie,
-  updateSelfie
+  updateSelfie,
+  resetPreference
 } = require("../controller/user");
 const {
   customerLike,
@@ -83,6 +84,7 @@ router.post("/ghostMode", ghostMode);
 router.post("/deleteuser", deleteUser);
 router.post("/settinguser", settingUser);
 router.post("/getsettinguser", getUserSetting);
+router.post("/resetpreference", resetPreference);
 router.post("/updateselfie",upload.single('image'), updateSelfie);
 //customer higlght management
 

@@ -631,6 +631,8 @@ exports.getSwipeData = async (req, res) => {
     //await User.createIndex({coordinates: "2dsphere"})
     // console.log(likeUser);
     //await User.index({coordinates: "2dsphere"})
+    var findPreference=await CustomerPreference.findOne({cp_c_unique_id:req.body.logged_in_unique_id})
+    if(!findPreference||findPreference.cp_flag==0){
     var response = await User.find({
       $and: [
         { c_unique_id: { $ne: req.body.logged_in_unique_id } },
@@ -654,14 +656,96 @@ exports.getSwipeData = async (req, res) => {
     })
       .sort({ c_is_boost: -1 })
       .limit(20);
-    // var result = await User.aggregate([
-    //   {
-    //     $geoNear: {
-    //        near: { type: "Point", coordinates: [  34.5435, 66.1313  ] },
-    //        distanceField: "0.1"
-    //     }
-    //   }
-    // ]);
+  }else if(findPreference.cp_flag==1){
+
+    var condition={}
+    var andCluase=[]
+    
+    console.log("hiiii")
+    console.log(findPreference)
+    var passionArray=[user.c_passion_1,user.c_passion_2]
+    andCluase.push({ c_unique_id: { $ne: req.body.logged_in_unique_id } })
+    andCluase.push({ c_unique_id: { $nin: arr } })
+    andCluase.push({ c_unique_id: { $nin: arr2 } })
+    if(findPreference.cp_passion_1!=""&& findPreference.cp_passion_2!=""){
+      andCluase.push({$or:[{c_passion_1: { $in: passionArray }},{c_passion_2: { $in: passionArray }}]})
+    }
+    if(findPreference.cp_passion_1!=""){
+      andCluase.push({$or:[{c_passion_1: { $in: passionArray }}]})
+    }
+    if(findPreference.cp_passion_2!=""){
+      andCluase.push({$or:[{c_passion_2: { $in: passionArray }}]})
+    }
+    if(findPreference.cp_age_from!=""&&findPreference.cp_age_to!=""){
+      andCluase.push({ c_age: { $gt: parseInt(findPreference.cp_age_from), $lt: parseInt(findPreference.cp_age_to)} })
+    }
+    if(findPreference.cp_users_with_bio!=""){
+      andCluase.push({c_bio:{$ne:""}})
+    }
+    if(findPreference.see_pan_india_profile===""&&findPreference.cp_distance_upto!=""){
+      andCluase.push({
+        coordinates: { 
+          $nearSphere: { 
+              $geometry: { 
+                  type: "Point", 
+                  coordinates: [ parseFloat(user.c_long) ,parseFloat(user.c_lat) ] 
+              }, 
+              $maxDistance: parseInt(findPreference.cp_distance_upto) 
+          } 
+      }
+      })
+    }
+    
+    condition['$and']=andCluase
+    //  if(findPreference.cp_see_pan_india_profile=='1'&& findPreference.cp_users_with_bio=='1'){
+    //   console.log("hi")
+       var response=await User.find(condition).sort({ c_is_boost: -1 }).limit(20);
+    //   // var response = await User.find({
+    //   //   $and: [
+    //   //     { c_unique_id: { $ne: req.body.logged_in_unique_id } },
+    //   //     { c_unique_id: { $nin: arr } },
+    //   //     { c_unique_id: { $nin: arr2 } },
+    //   //     { c_age: { $gt: parseInt(findPreference.cp_age_from), $lt: parseInt(findPreference.cp_age_to)} },
+    //   //     { c_gender: user.c_gender_preference },
+    //   //     {
+    //   //       $or:[
+    //   //         {c_passion_1:{$in:passionArray}},{c_passion_2:{$in:passionArray}}
+    //   //       ]
+
+    //   //     },
+    //   //     {c_bio:{$ne:""}}
+    //   //   ],
+    //   // })
+    //   //   .sort({ c_is_boost: -1 })
+    //   //   .limit(20);
+    
+    //  }else{
+    //   var response = await User.find({
+    //     $and: [
+    //       { c_unique_id: { $ne: req.body.logged_in_unique_id } },
+    //       { c_unique_id: { $nin: arr } },
+    //       { c_unique_id: { $nin: arr2 } },
+    //       { c_age: { $gt: parseInt(findPreference.cp_age_from), $lt: parseInt(findPreference.cp_age_to)} },
+    //       { c_gender: user.c_gender_preference },
+    //       {
+    //         coordinates: { 
+    //           $nearSphere: { 
+    //               $geometry: { 
+    //                   type: "Point", 
+    //                   coordinates: [ parseFloat(user.c_long) ,parseFloat(user.c_lat) ] 
+    //               }, 
+    //               $maxDistance: parseInt(findPreference.cp_distance_upto) 
+    //           } 
+    //       }
+    //       }
+          
+    //     ],
+    //   })
+    //     .sort({ c_is_boost: -1 })
+    //     .limit(20);
+    //  }
+  }
+    
     return res.status(200).json({
       status: 1,
       message: "Data Fetched Successfully",
@@ -675,6 +759,38 @@ exports.getSwipeData = async (req, res) => {
   // }
 };
 
+//reset preference
+exports.resetPreference=async(req,res)=>{
+  try{
+     var findPreference=await CustomerPreference.findOne({cp_c_unique_id:req.body.logged_in_unique_id})
+     if(findPreference){
+      findPreference.cp_age_from="",
+      findPreference.cp_age_to=""
+      findPreference.cp_passion_1=""
+      findPreference.cp_passion_2=""
+      findPreference.cp_passion_3=""
+      findPreference.cp_see_pan_india_profile=""
+      findPreference.cp_distance_upto=""
+      findPreference.cp_users_with_bio=""
+      findPreference.cp_flag=0
+      await findPreference.save()
+      return res.status(200).json({
+        status:1,
+        message:"Preference Reset Successfully"
+      })
+     }else{
+      return res.status(200).json({
+        status:0,
+        message:"Prefference Not Found"
+      })
+     }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
 //add update highlight
 exports.addHighlight = async (req, res) => {
   try {
@@ -797,13 +913,13 @@ exports.getTopPick = async (req, res) => {
     if (findUser) {
       var result;
       var length = await CustomerTopPick.find();
-      if (findUser.c_gender == "Male") {
-        result = await CustomerTopPick.find({ c_gender: "Female" })
+      if (findUser.c_gender == "Man") {
+        result = await CustomerTopPick.find({ c_gender: "Woman" })
           .limit(6)
           .skip(Math.floor(Math.random() * length))
           .next();
       } else {
-        result = await CustomerTopPick.find({ c_gender: "Male" })
+        result = await CustomerTopPick.find({ c_gender: "Man" })
           .limit(6)
           .skip(Math.floor(Math.random() * length))
           .next();
@@ -856,6 +972,7 @@ exports.updatePreference = async (req, res) => {
         req.body.users_with_bio != ""
           ? req.body.users_with_bio
           : findUser.cp_users_with_bio;
+      findCustomer.cp_flag=1
       await findUser.save();
       return res.status(200).json({
         status: 1,
@@ -881,7 +998,7 @@ exports.updatePreference = async (req, res) => {
           : "";
       newPreference.cp_users_with_bio =
         req.body.users_with_bio != "" ? req.body.users_with_bio : "";
-
+      newPreference.cp_flag=1
       await newPreference.save();
       return res.status(200).json({
         status: 1,
@@ -1222,6 +1339,27 @@ exports.updateSelfie=async(req,res)=>{
         message:"User Not Found"
       })
     }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+
+//get data with preference search
+
+exports.searchDataPreference=async(req,res)=>{
+  try{
+   var findUser=await User.findOne({c_unique_id:req.body.logged_in_unique_id})
+   if(findUser){
+    
+   }else{
+    return res.status(200).json({
+      status:0,
+      message:"User Not Found"
+    })
+   }
   }catch(err){
     return res.status(500).json({
       status:0,

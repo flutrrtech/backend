@@ -11,7 +11,11 @@ const customerPreferenceSchema = new mongoose.Schema(
     cp_age_to:String,
     cp_distance_upto:String,
     cp_see_pan_india_profile:String,
-    cp_users_bio:String
+    cp_users_with_bio:String,
+    cp_flag:{
+      type:Number,
+      default:0
+    }
 
   },
   {
