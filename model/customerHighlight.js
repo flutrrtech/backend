@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const customerHighlightSchema = new mongoose.Schema(
    {
     ch_id:String,
+    c_unique_id:String,
     ch_highlight:[
         {
          title:String,

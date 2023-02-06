@@ -29,7 +29,9 @@ const {
   getUserSetting,
   reportSelfie,
   updateSelfie,
-  resetPreference
+  resetPreference,
+  getHighLight,
+  updateHighLights
 } = require("../controller/user");
 const {
   customerLike,
@@ -90,6 +92,8 @@ router.post("/updateselfie",upload.single('image'), updateSelfie);
 
 router.post("/addhighlight",upload.array("image",1), addHighlight);
 router.post("/deletehighlight", deleteHighlight);
+router.post("/gethighlight", getHighLight);
+router.post("/updatehighlight",upload.array("image"), updateHighLights);
 //customer like management
 router.post("/customerlike", customerLike);
 router.post("/customersuperlike", customerSuperLike);
