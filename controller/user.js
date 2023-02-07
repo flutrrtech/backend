@@ -14,6 +14,9 @@ const CustomerSetting = require("../model/settingAll");
 var format = require("date-format");
 const { URLSearchParams } = require("url");
 const fs = require("fs");
+const customerHighlight = require("../model/customerHighlight");
+const { castObject } = require("../model/topPick");
+const { customerLike } = require("./customerLike");
 
 /* user registration
   post
@@ -663,6 +666,24 @@ exports.getSwipeData = async (req, res) => {
     })
       .sort({ c_is_boost: -1 })
       .limit(20);
+      for(var i=0;i<response.length;i++){
+        var customerHighlight=await CustomerHighlight.findOne({c_unique_id:response[i].c_unique_id})
+        if(customerHighlight){
+          
+          response[i].c_highlights=customerHighlight.ch_highlight
+      }
+      var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
+      if(customerLike){
+        response[i].has_like=true
+      }else{
+        response[i].has_like=false
+      }var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
+      if(customerLike){
+        response[i].has_like=true
+      }else{
+        response[i].has_like=false
+      }
+    }
   } else if (findPreference.cp_flag == 1) {
     var condition = {};
     var andCluase = [];
@@ -724,6 +745,30 @@ exports.getSwipeData = async (req, res) => {
     var response = await User.find(condition)
       .sort({ c_is_boost: -1 })
       .limit(20);
+      
+      for(var i=0;i<response.length;i++){
+        var customerHighlight=await CustomerHighlight.findOne({c_unique_id:response[i].c_unique_id})
+        if(customerHighlight){
+          
+          response[i].c_highlights=customerHighlight.ch_highlight
+      }
+      var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
+      if(customerLike){
+        response[i].has_like=true
+      }else{
+        response[i].has_like=false
+      }
+    }
+    // response=await response.map(async(item)=>{
+    //   var customerHighlight=await CustomerHighlight.findOne({c_unique_id:item.c_unique_id})
+    //   console.log(customerHighlight)
+    //   var obj={highlightes:[]}
+    //   var obj={...item}
+    //   console.log()
+    //   obj.highlightes=customerHighlight.ch_highlight
+      
+    //   return obj
+    // })
     //   // var response = await User.find({
     //   //   $and: [
     //   //     { c_unique_id: { $ne: req.body.logged_in_unique_id } },
@@ -773,7 +818,7 @@ exports.getSwipeData = async (req, res) => {
   return res.status(200).json({
     status: 1,
     message: "Data Fetched Successfully",
-    data: response,
+    data: response
   });
   // } catch (err) {
   //   return res.status(500).json({

@@ -133,7 +133,9 @@ const UserSchema = new mongoose.Schema({
   c_work:String,
   c_zodiac_sign:String,
   c_religious_belief:String,
-  c_age:Number
+  c_age:Number,
+  c_highlights:[],
+  has_like:Boolean
 },{
   timestamps:true
 });
