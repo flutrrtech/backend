@@ -658,7 +658,7 @@ exports.getSwipeData = async (req, res) => {
                 type: "Point",
                 coordinates: [parseFloat(user.c_long), parseFloat(user.c_lat)],
               },
-              $maxDistance: 100,
+              $maxDistance: 100000,
             },
           },
         },

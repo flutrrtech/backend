@@ -18,6 +18,7 @@ mongoose.connect("mongodb+srv://sourav:1234@cluster0.pwtwswj.mongodb.net/flutrr?
   
 app.use(express.static('uploads'))
 app.use("/api/user",require('./routes/userRoutes'))
+app.use("/api/mt",require('./routes/mtRoutes'))
 var port =process.env.PORT||3001
   app.listen(3000, () => {
     console.log('listening on 3000')
