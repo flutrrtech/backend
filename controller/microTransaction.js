@@ -501,3 +501,111 @@ exports.addBoost = async (req, res) => {
     });
   }
 };
+
+
+exports.addMTLog=async(req,res)=>{
+  try{
+     var mtlogs=new MtTransactionLog()
+     mtlogs.mtl_type=req.body.type?req.body.type:"";
+     mtlogs.mtl_unique_id=req.body.unique_id?req.body.unique_id:""
+     mtlogs.mtl_amount=req.body.amount?req.body.amount:""
+     mtlogs.mtl_text=req.body.text?req.body.text:""
+     mtlogs.mtl_qty=req.body.qty?req.body.qty:""
+     mtlogs.mtl_validity=req.body.validity?req.body.validity:""
+     mtlogs.mtl_start_from=req.body.start_from?req.body.start_from:""
+     mtlogs.mtl_to_end=req.body.to_end?req.body.to_end:""
+     mtlogs.mtl_transaction_id=req.body.transaction_id?req.body.transaction_id:""
+     mtlogs.mtl_transaction_other_data=req.body.transaction_other_data?req.body.transaction_other_data:""
+     await mtlogs.save()
+     return res.status(200).json({
+      status:1,
+      message:"Transaction Added Successfully"
+     })
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      mesaage:err.message
+    })
+  }
+}
+
+//unlock top pick
+
+exports.unlockTopPick=async(req,res)=>{
+  try{
+    var findMt=await CustomerMT.findOne({cmm_c_unique_id:req.body.c_unique_id})
+    if(findMt){
+      if(req.body.unlock_top_pick!=""){
+        findMt.cmm_unlock_toppick=req.body.unlock_top_pick
+      }
+      if(req.body.unlock_toppick_for_trn_id!=""){
+        findMt.cmm_unlock_toppick_for_trn_id=req.body.unlock_toppick_for_trn_id
+      }
+      await findMt.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data Saved Successfully"
+      })
+    }else{
+      var customerMT=new CustomerMT();
+      customerMT.cmm_unique_id=req.body.unique_id
+      if(req.body.unlock_top_pick!=""){
+        customerMT.cmm_unlock_toppick=req.body.unlock_top_pick
+      }
+      if(req.body.unlock_toppick_for_trn_id!=""){
+        customerMT.cmm_unlock_toppick_for_trn_id=req.body.unlock_toppick_for_trn_id
+      }
+      await customerMT.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data added successfully"
+      })
+    }
+
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+
+
+exports.unlockLike=async(req,res)=>{
+  try{
+    var findMt=await CustomerMT.findOne({cmm_c_unique_id:req.body.c_unique_id})
+    if(findMt){
+      if(req.body.unlock_like!=""){
+        findMt.cmm_unlock_like=req.body.unlock_like
+      }
+      if(req.body.unlock_like_for_trn_id!=""){
+        findMt.cmm_unlock_like_for_trn_id=req.body.unlock_like_for_trn_id
+      }
+      await findMt.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data Saved Successfully"
+      })
+    }else{
+      var customerMT=new CustomerMT();
+      customerMT.cmm_unique_id=req.body.unique_id
+      if(req.body.unlock_like!=""){
+        customerMT.cmm_unlock_like=req.body.unlock_like
+      }
+      if(req.body.unlock_like_for_trn_id!=""){
+        customerMT.cmm_unlock_like_for_trn_id=req.body.unlock_like_for_trn_id
+      }
+      await customerMT.save()
+      return res.status(200).json({
+        status:1,
+        message:"Data added successfully"
+      })
+    }
+
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
