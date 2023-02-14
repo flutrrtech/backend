@@ -570,7 +570,7 @@ exports.unlockTopPick=async(req,res)=>{
   }
 }
 
-
+//unlock like
 exports.unlockLike=async(req,res)=>{
   try{
     var findMt=await CustomerMT.findOne({cmm_c_unique_id:req.body.c_unique_id})
@@ -600,6 +600,106 @@ exports.unlockLike=async(req,res)=>{
         status:1,
         message:"Data added successfully"
       })
+    }
+
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+
+//delete unlock top pick
+exports.removePaidUnlockToppick=async(req,res)=>{
+  try{
+    var customerMt = await CustomerMT.findOne({
+      cmm_c_unique_id: req.body.c_unique_id,
+    });
+    if (customerMt) {
+      if (req.body.toppick_remove != "") {
+        if (customerMt.cmm_unlock_toppick && customerMt.cmm_unlock_toppick != "") {
+          var sum =
+            parseInt(customerMt.cmm_unlock_toppick) - parseInt(req.body.toppick_remove);
+          customerMt.cmm_unlock_toppick = sum.toString();
+        }
+      }
+      await customerMt.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Data removed successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "No Records Found",
+      });
+    }
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+//remove unlock like paid
+exports.removeUnlockLikePaid=async(req,res)=>{
+  try{
+    var customerMt = await CustomerMT.findOne({
+      cmm_c_unique_id: req.body.c_unique_id,
+    });
+    if (customerMt) {
+      if (req.body.like_remove != "") {
+        if (customerMt.cmm_unlock_like && customerMt.cmm_unlock_like != "") {
+          var sum =
+            parseInt(customerMt.cmm_unlock_like) - parseInt(req.body.like_remove);
+          customerMt.cmm_unlock_like = sum.toString();
+        }
+      }
+      await customerMt.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Data removed successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "No Records Found",
+      });
+    }
+
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+
+//remove unlock free like
+exports.removeUnlockLikeFree=async(req,res)=>{
+  try{
+    var customerMt = await CustomerMT.findOne({
+      cmm_c_unique_id: req.body.c_unique_id,
+    });
+    if (customerMt) {
+      if (req.body.like_remove != "") {
+        if (customerMt.cmm_free_unlock_like && customerMt.cmm_free_unlock_like != "") {
+          var sum =
+            parseInt(customerMt.cmm_free_unlock_like) - parseInt(req.body.like_remove);
+          customerMt.cmm_free_unlock_like = sum.toString();
+        }
+      }
+      await customerMt.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Data removed successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "No Records Found",
+      });
     }
 
   }catch(err){
