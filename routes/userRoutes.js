@@ -31,7 +31,8 @@ const {
   updateSelfie,
   resetPreference,
   getHighLight,
-  updateHighLights
+  updateHighLights,
+  addBlockContact
 } = require("../controller/user");
 const {
   customerLike,
@@ -88,6 +89,7 @@ router.post("/settinguser", settingUser);
 router.post("/getsettinguser", getUserSetting);
 router.post("/resetpreference", resetPreference);
 router.post("/updateselfie",upload.single('image'), updateSelfie);
+router.post("/addblockcontacts", addBlockContact);
 //customer higlght management
 
 router.post("/addhighlight",upload.array("image",1), addHighlight);

@@ -11,6 +11,7 @@ const CustomerHighlight = require("../model/customerHighlight");
 const CustomerPreference = require("../model/customerPreference");
 const CustomerTopPick = require("../model/topPick");
 const CustomerSetting = require("../model/settingAll");
+const CustomerBlock = require("../model/customerBlock");
 var format = require("date-format");
 const { URLSearchParams } = require("url");
 const fs = require("fs");
@@ -188,6 +189,12 @@ exports.uploadProfilePhoto = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
+    const highlight=await CustomerHighlight.findOne({c_unique_id:req.body.unique_id})
+    //var obj={...findUser,highlight:highlight}
+    if(highlight){
+          
+      findUser.c_highlights=highlight.ch_highlight
+  }
     if (findUser) {
       return res.status(200).json({
         status: 1,
@@ -658,7 +665,7 @@ exports.getSwipeData = async (req, res) => {
                 type: "Point",
                 coordinates: [parseFloat(user.c_long), parseFloat(user.c_lat)],
               },
-              $maxDistance: 100000,
+              $maxDistance: 1000000,
             },
           },
         },
@@ -1522,3 +1529,20 @@ exports.searchDataPreference = async (req, res) => {
     });
   }
 };
+exports.addBlockContact=async(req,res)=>{
+  try{
+   var blockUser=new CustomerBlock()
+   blockUser.block_sender_phone=req.body.block_sender_phone
+   blockUser.block_receiver_phone=req.body.block_receiver_phone
+   await blockUser.save()
+   return res.status(200).json({
+    status:1,
+    message:"Data added successfully"
+   })
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
