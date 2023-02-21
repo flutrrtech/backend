@@ -26,23 +26,30 @@ cron.schedule('* * * * * *', async() => {
         if(totalUser[i].c_profile_image_5!=""){
             count++
         }
-        if(count>=2&& manFlag<=6){
+        if(count>=2){
             var likeCount=await CustomerLike.find({clm_receiver_unique_id:totalUser[i].c_unique_id})
-            if(likeCount.length>2&&totalUser[i].c_gender=="Man"||likeCount.length>15&&totalUser[i].c_gender=="Woman"){
-                var customerTopPick=new CustomerTopPick()
-                customerTopPick.c_unique_id=totalUser[i].c_unique_id
-                customerTopPick.c_gender="Man"
-                await CustomerTopPick.save()
-                manFlag++
+            if(likeCount.length>2&&totalUser[i].c_gender=="Man"){
+                var findUser=await CustomerTopPick.findOne({c_unique_id:totalUser[i].c_unique_id})
+                if(!findUser){
+                    var customerTopPick=new CustomerTopPick()
+                    customerTopPick.c_unique_id=totalUser[i].c_unique_id
+                    customerTopPick.c_gender="Man"
+                    await CustomerTopPick.save()
+                }
+                
+                
             }
         }
-        if(count>=2&&womanFlag<=6){
+        if(count>=2){
             if(likeCount.length>15&&totalUser[i].c_gender=="Woman"){
+                var findUser=await CustomerTopPick.findOne({c_unique_id:totalUser[i].c_unique_id})
+                if(!findUser){
                 var customerTopPick=new CustomerTopPick()
                 customerTopPick.c_unique_id=totalUser[i].c_unique_id
                 customerTopPick.c_gender="Woman"
                 await CustomerTopPick.save()
-                womanFlag++
+                }
+                
             }
         }
 

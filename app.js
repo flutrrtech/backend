@@ -15,7 +15,12 @@ mongoose.connect("mongodb+srv://sourav:1234@cluster0.pwtwswj.mongodb.net/flutrr?
   .then(client => {
     console.log("Connected to Database");
   })
-  
+
+//cron jobs
+//var mtCron=require("./cronjob/mtCronjob")
+
+
+//
 app.use(express.static('uploads'))
 app.use("/api/user",require('./routes/userRoutes'))
 app.use("/api/mt",require('./routes/mtRoutes'))

@@ -12,6 +12,7 @@ const CustomerPreference = require("../model/customerPreference");
 const CustomerTopPick = require("../model/topPick");
 const CustomerSetting = require("../model/settingAll");
 const CustomerBlock = require("../model/customerBlock");
+const CustomerMT = require("../model/microTransaction");
 var format = require("date-format");
 const { URLSearchParams } = require("url");
 const fs = require("fs");
@@ -23,11 +24,11 @@ const { customerLike } = require("./customerLike");
   post
   */
 exports.userRegistration = async (req, res) => {
-  if (req.body.user_phone != "") {
-    var findUserPhone = await User.findOne({
-      c_phone: req.body.user_phone,
-    });
-  }
+  // if (req.body.user_phone != "") {
+  //   var findUserPhone = await User.findOne({
+  //     c_phone: req.body.user_phone,
+  //   });
+  // }
   if (req.body.user_email != "") {
     var findUserEmail = await User.findOne({
       c_email: req.body.user_email,
@@ -38,8 +39,13 @@ exports.userRegistration = async (req, res) => {
       c_facebook_token: req.body.user_facebook_token,
     });
   }
-
-  if (findUserPhone || findUserEmail || findUserFacebookToken) {
+  console.log("info", findUserEmail, findUserFacebookToken);
+  if (
+    findUserEmail != null ||
+    findUserFacebookToken != null ||
+    findUserEmail != undefined ||
+    findUserFacebookToken != undefined
+  ) {
     return res.status(200).json({
       status: 0,
       message: "User Already Exist",
@@ -47,7 +53,7 @@ exports.userRegistration = async (req, res) => {
   }
   let user = new User();
   (user.c_response_type = req.body.user_response_type),
-    (user.c_phone = req.body.user_phone),
+    // (user.c_phone = req.body.user_phone),
     (user.c_email = req.body.user_email),
     (user.c_f_name = req.body.user_f_name),
     (user.c_l_name = req.body.user_l_name),
@@ -55,20 +61,55 @@ exports.userRegistration = async (req, res) => {
     (user.c_firebase_token = req.body.user_firebase_token),
     (user.c_device_info = req.body.user_device_info),
     (user.c_facebook_token = req.body.user_facebook_token);
-  user.coordinates = [];
-  let otp = await randomOtpGenerator();
-  user.c_otp = otp;
-  user.otp_verified = "1";
+  user.c_gender = req.body.user_gender;
+  user.c_gender_preference = req.body.user_gender_preference;
+  user.c_passion_1 = req.body.user_passion_1;
+  user.c_passion_2 = req.body.user_passion_2;
+  user.c_gender_display = req.body.user_gender_display;
+  user.c_lat = req.body.user_lat;
+  user.c_long = req.body.user_long;
+  if (req.body.user_display_name) {
+    user.c_display_name = req.body.user_display_name;
+  }
+  if (req.body.user_dob) {
+    user.c_dob = req.body.user_dob;
+    var today = new Date();
+    var dob = req.body.user_dob.split("/");
+    req.body.user_dob = dob[2] + "-" + dob[1] + "-" + dob[0];
+    // req.user_dob=format(req.body.user_dob)
+    var birthDate = new Date(req.body.user_dob);
+    var age = today.getFullYear() - birthDate.getFullYear();
+    var m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    console.log(age);
+    user.c_age = age;
+  }
+  user.coordinates.push(parseFloat(req.body.user_long));
+  user.coordinates.push(parseFloat(req.body.user_lat));
+  //let otp = await randomOtpGenerator();
+  //user.c_otp = otp;
+  user.otp_verified = "1"; //not verified
   let result = await user.save();
   result.c_unique_id = result._id;
-  await result.save();
-  if (req.body.user_phone) {
-    await sendOtp(req.body.user_phone, otp);
-  }
+  var customerMT = new CustomerMT();
+  customerMT.cmm_c_unique_id = result._id;
+  customerMT.cmm_free_like = "25";
+  customerMT.cmm_free_super_like = "1";
+  customerMT.cmm_free_rewind = "1";
+  customerMT.cmm_free_unlock_toppick = "1";
+  customerMT.cmm_free_unlock_like = "1";
+  await customerMT.save();
+  var data = await result.save();
+  // if (req.body.user_phone) {
+  //   await sendOtp(req.body.user_phone, otp);
+  // }
   return res.status(200).json({
     status: 1,
     message: "User Created Successfully",
     unique_id: result._id,
+    data: data,
   });
 };
 /* verify otp- post */
@@ -77,7 +118,7 @@ exports.verifyOtp = async (req, res) => {
   if (user) {
     console.log(user.otp, req.body.otp);
     if (user.c_otp == req.body.otp) {
-      user.otp_verified = "2";
+      user.otp_verified = "2"; //otp verified
       await user.save();
       return res.status(200).json({
         status: true,
@@ -138,31 +179,31 @@ exports.uploadProfilePhoto = async (req, res) => {
         req.files.user_profile_image_1 &&
         req.files.user_profile_image_1.length > 0
       ) {
-        findUser.c_profile_image_1 = req.files.user_profile_image_1[0].filename;
+        findUser.c_profile_image_1 = "uploads/"+req.files.user_profile_image_1[0].filename;
       }
       if (
         req.files.user_profile_image_2 &&
         req.files.user_profile_image_2.length > 0
       ) {
-        findUser.c_profile_image_2 = req.files.user_profile_image_2[0].filename;
+        findUser.c_profile_image_2 = "uploads/"+req.files.user_profile_image_2[0].filename;
       }
       if (
         req.files.user_profile_image_3 &&
         req.files.user_profile_image_3.length > 0
       ) {
-        findUser.c_profile_image_3 = req.files.user_profile_image_3[0].filename;
+        findUser.c_profile_image_3 = "uploads/"+req.files.user_profile_image_3[0].filename;
       }
       if (
         req.files.user_profile_image_4 &&
         req.files.user_profile_image_4.length > 0
       ) {
-        findUser.c_profile_image_4 = req.files.user_profile_image_4[0].filename;
+        findUser.c_profile_image_4 = "uploads/"+req.files.user_profile_image_4[0].filename;
       }
       if (
         req.files.user_profile_image_5 &&
         req.files.user_profile_image_5.length > 0
       ) {
-        findUser.c_profile_image_5 = req.files.user_profile_image_5[0].filename;
+        findUser.c_profile_image_5 = "uploads/"+req.files.user_profile_image_5[0].filename;
       }
       if (req.body.bio) {
         findUser.c_bio = req.body.bio;
@@ -189,12 +230,13 @@ exports.uploadProfilePhoto = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
-    const highlight=await CustomerHighlight.findOne({c_unique_id:req.body.unique_id})
+    const highlight = await CustomerHighlight.findOne({
+      c_unique_id: req.body.unique_id,
+    });
     //var obj={...findUser,highlight:highlight}
-    if(highlight){
-          
-      findUser.c_highlights=highlight.ch_highlight
-  }
+    if (highlight) {
+      findUser.c_highlights = highlight.ch_highlight;
+    }
     if (findUser) {
       return res.status(200).json({
         status: 1,
@@ -231,6 +273,7 @@ exports.facebookLogin = async (req, res) => {
         status: 1,
         user_token: token,
         message: "User Logged In Successfully",
+        data:findUser
       });
     } else {
       return res.status(200).json({
@@ -260,6 +303,7 @@ exports.emailLogin = async (req, res) => {
         status: 1,
         user_token: token,
         message: "User Logged In Successfully",
+        data:findUser
       });
     } else {
       return res.status(200).json({
@@ -494,7 +538,7 @@ exports.deleteProfileImage = async (req, res) => {
 /* update profile
  post */
 exports.updateProfile = async (req, res) => {
-  // try {
+  try {
 
   const findUser = await User.findOne({ c_unique_id: req.body.unique_id });
   if (findUser) {
@@ -599,12 +643,12 @@ exports.updateProfile = async (req, res) => {
       message: "User not found",
     });
   }
-  // } catch (err) {
-  //   return res.status(200).json({
-  //     status: 0,
-  //     message: err.message,
-  //   });
-  // }
+  } catch (err) {
+    return res.status(200).json({
+      status: 0,
+      message: err.message,
+    });
+  }
 };
 /* get swipe data
  post */
@@ -673,22 +717,30 @@ exports.getSwipeData = async (req, res) => {
     })
       .sort({ c_is_boost: -1 })
       .limit(20);
-      for(var i=0;i<response.length;i++){
-        var customerHighlight=await CustomerHighlight.findOne({c_unique_id:response[i].c_unique_id})
-        if(customerHighlight){
-          
-          response[i].c_highlights=customerHighlight.ch_highlight
+    for (var i = 0; i < response.length; i++) {
+      var customerHighlight = await CustomerHighlight.findOne({
+        c_unique_id: response[i].c_unique_id,
+      });
+      if (customerHighlight) {
+        response[i].c_highlights = customerHighlight.ch_highlight;
       }
-      var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
-      if(customerLike){
-        response[i].has_like=true
-      }else{
-        response[i].has_like=false
-      }var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
-      if(customerLike){
-        response[i].has_like=true
-      }else{
-        response[i].has_like=false
+      var customerLike = await CustomerLike.findOne({
+        clm_sender_unique_id: response[i].c_unique_id,
+        clm_receiver_unique_id: user.c_unique_id,
+      });
+      if (customerLike) {
+        response[i].has_like = true;
+      } else {
+        response[i].has_like = false;
+      }
+      var customerLike = await CustomerLike.findOne({
+        clm_sender_unique_id: response[i].c_unique_id,
+        clm_receiver_unique_id: user.c_unique_id,
+      });
+      if (customerLike) {
+        response[i].has_like = true;
+      } else {
+        response[i].has_like = false;
       }
     }
   } else if (findPreference.cp_flag == 1) {
@@ -752,18 +804,22 @@ exports.getSwipeData = async (req, res) => {
     var response = await User.find(condition)
       .sort({ c_is_boost: -1 })
       .limit(20);
-      
-      for(var i=0;i<response.length;i++){
-        var customerHighlight=await CustomerHighlight.findOne({c_unique_id:response[i].c_unique_id})
-        if(customerHighlight){
-          
-          response[i].c_highlights=customerHighlight.ch_highlight
+
+    for (var i = 0; i < response.length; i++) {
+      var customerHighlight = await CustomerHighlight.findOne({
+        c_unique_id: response[i].c_unique_id,
+      });
+      if (customerHighlight) {
+        response[i].c_highlights = customerHighlight.ch_highlight;
       }
-      var customerLike=await CustomerLike.findOne({clm_sender_unique_id:response[i].c_unique_id,clm_receiver_unique_id:user.c_unique_id})
-      if(customerLike){
-        response[i].has_like=true
-      }else{
-        response[i].has_like=false
+      var customerLike = await CustomerLike.findOne({
+        clm_sender_unique_id: response[i].c_unique_id,
+        clm_receiver_unique_id: user.c_unique_id,
+      });
+      if (customerLike) {
+        response[i].has_like = true;
+      } else {
+        response[i].has_like = false;
       }
     }
     // response=await response.map(async(item)=>{
@@ -773,7 +829,7 @@ exports.getSwipeData = async (req, res) => {
     //   var obj={...item}
     //   console.log()
     //   obj.highlightes=customerHighlight.ch_highlight
-      
+
     //   return obj
     // })
     //   // var response = await User.find({
@@ -825,7 +881,7 @@ exports.getSwipeData = async (req, res) => {
   return res.status(200).json({
     status: 1,
     message: "Data Fetched Successfully",
-    data: response
+    data: response,
   });
   // } catch (err) {
   //   return res.status(500).json({
@@ -849,7 +905,7 @@ exports.resetPreference = async (req, res) => {
       findPreference.cp_see_pan_india_profile = "";
       findPreference.cp_distance_upto = "";
       findPreference.cp_users_with_bio = "";
-      findPreference.cp_flag = 0;
+      findPreference.cp_flag = 0;//flag=0 reset, flag=1 set preference
       await findPreference.save();
       return res.status(200).json({
         status: 1,
@@ -870,7 +926,7 @@ exports.resetPreference = async (req, res) => {
 };
 //add update highlight
 exports.addHighlight = async (req, res) => {
-  try {
+  //  try {
     var findHighlight = await CustomerHighlight.findOne({
       c_unique_id: req.body.unique_id,
     });
@@ -916,30 +972,39 @@ exports.addHighlight = async (req, res) => {
     } else {
       var addHighlight = new CustomerHighlight();
       addHighlight.c_unique_id = req.body.unique_id;
-      for (var i = 0; i < req.body.highlight.length; i++) {
-        var item = JSON.parse(req.body.highlight[i]);
-        console.log(item);
-        var obj = {
-          title: item.title,
-          description: item.description,
-          image: req.files[i] ? `uploads/${req.files[i].originalname}` : "",
-        };
-        addHighlight.ch_highlight.push(obj);
-      }
+      // for (var i = 0; i < req.body.highlight.length; i++) {
+      //   var item = JSON.parse(req.body.highlight[i]);
+      //   console.log(item);
+      //   var obj = {
+      //     title: item.title,
+      //     description: item.description,
+      //     image: req.files[i] ? `uploads/${req.files[i].originalname}` : "",
+      //   };
+      //   addHighlight.ch_highlight.push(obj);
+      // }
+      var item = JSON.parse(req.body.highlight);
+      console.log(item);
+      var obj = {
+        title: item.title,
+        description: item.description,
+        image: req.files ? `uploads/${req.files.originalname}` : "",
+      };
+      addHighlight.ch_highlight.push(obj);
       var result = await addHighlight.save();
       result.ch_id = result._id;
       await result.save();
       return res.status(200).json({
         status: 1,
-        message: "Highlight added successfulyy",
+        message: "Highlight added successfully",
       });
     }
-  } catch (err) {
-    return res.status(500).json({
-      status: 0,
-      message: err.message,
-    });
-  }
+  // } 
+  // catch (err) {
+  //   return res.status(500).json({
+  //     status: 0,
+  //     message: err.message,
+  //   });
+  // }
 };
 
 //update Highlights
@@ -1132,11 +1197,11 @@ exports.updatePreference = async (req, res) => {
         req.body.users_with_bio != ""
           ? req.body.users_with_bio
           : findUser.cp_users_with_bio;
-      findCustomer.cp_flag = 1;
+      findCustomer.cp_flag = req.body.flag; //flag need to sent by frontend
       await findUser.save();
       return res.status(200).json({
         status: 1,
-        message: "Preferemnce Updated Successfully",
+        message: "Preference Updated Successfully",
       });
     } else {
       var newPreference = new CustomerPreference();
@@ -1158,11 +1223,11 @@ exports.updatePreference = async (req, res) => {
           : "";
       newPreference.cp_users_with_bio =
         req.body.users_with_bio != "" ? req.body.users_with_bio : "";
-      newPreference.cp_flag = 1;
+      newPreference.cp_flag = req.body.flag; //need to sent by front end
       await newPreference.save();
       return res.status(200).json({
         status: 1,
-        message: "Preferemnce Updated Successfully",
+        message: "Preference Updated Successfully",
       });
     }
   } catch (err) {
@@ -1529,20 +1594,20 @@ exports.searchDataPreference = async (req, res) => {
     });
   }
 };
-exports.addBlockContact=async(req,res)=>{
-  try{
-   var blockUser=new CustomerBlock()
-   blockUser.block_sender_phone=req.body.block_sender_phone
-   blockUser.block_receiver_phone=req.body.block_receiver_phone
-   await blockUser.save()
-   return res.status(200).json({
-    status:1,
-    message:"Data added successfully"
-   })
-  }catch(err){
+exports.addBlockContact = async (req, res) => {
+  try {
+    var blockUser = new CustomerBlock();
+    blockUser.block_sender_phone = req.body.block_sender_phone;
+    blockUser.block_receiver_phone = req.body.block_receiver_phone;
+    await blockUser.save();
+    return res.status(200).json({
+      status: 1,
+      message: "Data added successfully",
+    });
+  } catch (err) {
     return res.status(500).json({
-      status:0,
-      message:err.message
-    })
+      status: 0,
+      message: err.message,
+    });
   }
-}
+};

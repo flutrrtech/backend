@@ -11,8 +11,14 @@ const UserSchema = new mongoose.Schema({
   c_gender: String,
   c_gender_preference: String,
   c_here_for: String,
-  c_passion_1: String,
-  c_passion_2: String,
+  c_passion_1: {
+    type:String,
+    default:""
+  },
+  c_passion_2: {
+    type:String,
+    default:""
+  },
   c_lang: String,
   c_bio: String,
   c_selfie_pic: String,
