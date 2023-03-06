@@ -1,5 +1,6 @@
 const CustomerMT = require("../model/microTransaction");
 const MtTransactionLog=require("../model/mtTransactionLog")
+const User=require("../model/User")
 //add super like
 exports.addSuperLike = async (req, res) => {
   try {
@@ -462,11 +463,15 @@ exports.addBoost = async (req, res) => {
       cmm_c_unique_id: req.body.unique_id,
     });
     if (customerMt) {
+      await User.findOneAndUpdate({c_unique_id:req.body.unique_id},{c_is_boost:"1"},{new:true})
       if (req.body.boost != "") {
         customerMt.cmm_boost = req.body.boost;
       }
       if (req.body.boost_end != "") {
-        customerMt.cmm_boost_end = req.body.boost_end;
+        var today = new Date();
+        today.setHours(today.getHours() + parseInt(req.body.boost_end));
+        console.log(new Date(today))
+        customerMt.cmm_boost_end = new Date(today);
       }
       if (req.body.boost_for_trn_id) {
         customerMt.cmm_boost_for_trn_id = req.body.boost_for_trn_id;
@@ -482,8 +487,11 @@ exports.addBoost = async (req, res) => {
       if (req.body.boost != "") {
         customerMt.cmm_boost = req.body.boost;
       }
+      await User.findOneAndUpdate({c_unique_id:req.body.unique_id},{c_is_boost:"1"},{new:true})
       if (req.body.boost_end != "") {
-        customerMt.cmm_boost_end = req.body.boost_end;
+        var today = new Date();
+        today.setHours(today.getHours() + parseInt(req.body.boost_end));
+        customerMt.cmm_boost_end = new Date(today);
       }
       if (req.body.boost_for_trn_id) {
         customerMt.cmm_boost_for_trn_id = req.body.boost_for_trn_id;
@@ -702,6 +710,38 @@ exports.removeUnlockLikeFree=async(req,res)=>{
       });
     }
 
+  }catch(err){
+    return res.status(500).json({
+      status:0,
+      message:err.message
+    })
+  }
+}
+//remove unlock top pick free
+exports.removeFreeUnlockToppick=async(req,res)=>{
+  try{
+    var customerMt = await CustomerMT.findOne({
+      cmm_c_unique_id: req.body.c_unique_id,
+    });
+    if (customerMt) {
+      if (req.body.toppick_remove != "") {
+        if (customerMt.cmm_free_unlock_toppick && customerMt.cmm_free_unlock_toppick != "") {
+          var sum =
+            parseInt(customerMt.cmm_free_unlock_toppick) - parseInt(req.body.toppick_remove);
+          customerMt.cmm_free_unlock_toppick= sum.toString();
+        }
+      }
+      await customerMt.save();
+      return res.status(200).json({
+        status: 1,
+        message: "Data removed successfully",
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        message: "No Records Found",
+      });
+    }
   }catch(err){
     return res.status(500).json({
       status:0,

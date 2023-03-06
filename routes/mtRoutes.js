@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {addSuperLike,addLike,fetchMt,removeFreeLike,removeFreeSuperLike,removePaidLike,removePaidSuperLike,
-addPaidRewind,removePaidRewind,removeFreeRewind,addAudioTime,addVideoTime,addBoost,addMTLog,unlockTopPick,unlockLike,removePaidUnlockToppick,removeUnlockLikePaid,removeUnlockLikeFree}=require("../controller/microTransaction")
+addPaidRewind,removePaidRewind,removeFreeRewind,addAudioTime,addVideoTime,addBoost,addMTLog,unlockTopPick,unlockLike,removePaidUnlockToppick,removeUnlockLikePaid,removeUnlockLikeFree,removeFreeUnlockToppick}=require("../controller/microTransaction")
 
 
 
@@ -28,4 +28,5 @@ router.post("/unlocklike", unlockLike);
 router.post("/removeunlocktoppick", removePaidUnlockToppick);
 router.post("/removeunlocklikepaid", removeUnlockLikePaid);
 router.post("/removeunlocklikefree", removeUnlockLikeFree);
+router.post("/removeunlocktoppickfree", removeFreeUnlockToppick);
 module.exports = router;

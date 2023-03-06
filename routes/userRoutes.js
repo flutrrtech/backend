@@ -32,7 +32,10 @@ const {
   resetPreference,
   getHighLight,
   updateHighLights,
-  addBlockContact
+  addBlockContact,
+  checkUser,
+  appleLogin,
+  setData
 } = require("../controller/user");
 const {
   customerLike,
@@ -90,6 +93,9 @@ router.post("/getsettinguser", getUserSetting);
 router.post("/resetpreference", resetPreference);
 router.post("/updateselfie",upload.single('image'), updateSelfie);
 router.post("/addblockcontacts", addBlockContact);
+router.post("/checkuser", checkUser);
+router.post("/applelogin", appleLogin);
+router.post("/setdata",setData )
 //customer higlght management
 
 router.post("/addhighlight",upload.array("image",1), addHighlight);

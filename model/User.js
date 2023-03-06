@@ -19,14 +19,42 @@ const UserSchema = new mongoose.Schema({
     type:String,
     default:""
   },
-  c_lang: String,
-  c_bio: String,
-  c_selfie_pic: String,
-  c_gender_display: String,
-  c_display_name: String,
-  c_firebase_token: String,
-  c_device_info: String,
-  c_facebook_token: String,
+  c_lang: {
+    type:String,
+    default:""
+  },
+  c_bio: {
+    type:String,
+    default:""
+  },
+  c_selfie_pic: {
+    type:String,
+    default:""
+  },
+  c_gender_display: {
+  type:String,
+  default:""
+  },
+  c_display_name: {
+    type:String,
+    default:""
+    },
+  c_firebase_token: {
+    type:String,
+    default:""
+    },
+  c_device_info: {
+    type:String,
+    default:""
+    },
+  c_facebook_token: {
+    type:String,
+    default:""
+    },
+  c_apple_token:{
+    type:String,
+    default:""
+    },
   coordinates:{
     type:Array,
     default:[],
@@ -134,14 +162,35 @@ const UserSchema = new mongoose.Schema({
     type:Boolean,
     default:false
   },
-  c_home:String,
-  c_educational_level:String,
-  c_work:String,
-  c_zodiac_sign:String,
-  c_religious_belief:String,
+  c_home:{
+    type:String,
+    default:""
+  },
+  c_educational_level:{
+    type:String,
+    default:""
+  },
+  c_work:{
+    type:String,
+    default:""
+  },
+  c_zodiac:{
+    type:String,
+    default:""
+  },
+  c_religion:{
+    type:String,
+    default:""
+  },
+  c_notification:{
+    type:String,
+    default:""
+  },
   c_age:Number,
   c_highlights:[],
-  has_like:Boolean
+  has_like:Boolean,
+  Highlights:[]
+  
 },{
   timestamps:true
 });

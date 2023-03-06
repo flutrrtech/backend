@@ -7,7 +7,7 @@ app.use(bodyParser({urlencoded:true}));
 app.use(express.json());
 require('dotenv').config();
 mongoose.set('strictQuery', false);
-mongoose.connect("mongodb+srv://sourav:1234@cluster0.pwtwswj.mongodb.net/flutrr?retryWrites=true&w=majority", {
+mongoose.connect("mongodb://admin:fLuTrrMonGo121@162.214.158.195:27017/flutrr", {
     useNewUrlParser: true,
    useUnifiedTopology: true
 })
@@ -18,9 +18,11 @@ mongoose.connect("mongodb+srv://sourav:1234@cluster0.pwtwswj.mongodb.net/flutrr?
 
 //cron jobs
 //var mtCron=require("./cronjob/mtCronjob")
-
+// var mtboostcron=require('./cronjob/boostCron')
+// var topPickCron=require('./cronjob/topPickCron')
 
 //
+// app.use(express.static(__dirname + 'uploads'));
 app.use(express.static('uploads'))
 app.use("/api/user",require('./routes/userRoutes'))
 app.use("/api/mt",require('./routes/mtRoutes'))

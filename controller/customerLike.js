@@ -1,6 +1,7 @@
 
 const CustomerLike = require("../model/customerLike");
 const User = require("../model/User");
+const merge = require('deepmerge')
 // user send like
 exports.customerLike=async(req,res)=>{
     try{
@@ -81,21 +82,36 @@ exports.customerSuperLike=async(req,res)=>{
 
 exports.getLikedUser=async(req,res)=>{
     try{
-      var findLikes=await CustomerLike.find({crm_reciver_unique_id:req.body.unique_id})
-      var i=0
-      var arr=[]
-      while(i<findLikes.length){
-        var results=await User.findOne({unique_id:findlikes[i].unique_id})
-        if(results){
-            arr.push(results)
+      var findLikes=await CustomerLike.aggregate([
+       {$match: {clm_receiver_unique_id:req.body.unique_id}},
+       {
+        $lookup:{
+            from:"users",
+            localField:"clm_sender_unique_id",
+            foreignField:"c_unique_id",
+            as:"userdata"
         }
-        i++;
+       },
+       {$limit:10}
 
-      }
+    ])
+    //   var i=0
+    //   var arr=[]
+    //   console.log(findLikes.length)
+    //   while(i<findLikes.length){
+    //     var results=await User.findOne({c_unique_id:findLikes[i].clm_sender_unique_id})
+    //     if(results){
+    //         var obj=Object.assign(findLikes[i],results)
+            
+    //         arr.push(obj)
+    //     }
+    //     i++;
+
+    //   }
       return res.status(200).json({
         status:1,
         message:"Get Liked Data Successfully",
-        data:arr
+        data:findLikes
       })
   
     }
